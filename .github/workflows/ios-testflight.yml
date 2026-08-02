@@ -43,6 +43,8 @@ jobs:
       # 5. Unity projesinden Xcode projesi çıktısı al (Lisans aktifleştirildi)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
