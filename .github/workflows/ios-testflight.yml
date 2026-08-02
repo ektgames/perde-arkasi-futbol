@@ -40,20 +40,29 @@ jobs:
           # 1. Ham lisansı geçici dosyaya yaz (Git dışındaki RUNNER_TEMP klasörüne)
           echo "$UNITY_LICENSE_CONTENT" > "$RUNNER_TEMP/temp_license.xml"
 
-          # 2. Python ile tüm donanım kilitlerini macOS sanal sunucusunun Machine ID'si ile güncelle
+          # 2. Python ile kilit türlerine göre hassas donanım eşleme yap
           python3 -c "
-          import sys, xml.etree.ElementTree as ET, os
+          import sys, xml.etree.ElementTree as ET, subprocess, re, os
 
           temp_path = os.path.join(os.environ['RUNNER_TEMP'], 'temp_license.xml')
           final_path = os.path.join(os.environ['RUNNER_TEMP'], 'final_license.xml')
 
-          # Sanal Mac sunucusunun tam Unity 6 Machine ID'si
+          # Sanal Mac sunucusunun MAC Adresi ve Machine ID'si
+          mac = subprocess.check_output(['ifconfig']).decode()
+          mac_match = re.search(r'ether ([0-9a-fA-F:]+)', mac)
+          mac_addr = mac_match.group(1).lower() if mac_match else '00:00:00:00:00:00'
           machine_id = 'oWYgmIudQ0cUm9xKT9RertF4Kp8='
+
+          print(f'Sanal Mac MAC: {mac_addr}, Machine ID: {machine_id}')
 
           tree = ET.parse(temp_path)
           root = tree.getroot()
           for elem in root.iter('Identifier'):
-              elem.set('Id', machine_id)
+              t = elem.get('Type')
+              if t == 'Legacy.MachineBinding5':
+                  elem.set('Id', mac_addr)
+              elif t in ['Legacy.MachineBinding1', 'Legacy.MachineBinding2', 'Legacy.MachineBinding4']:
+                  elem.set('Id', machine_id)
 
           tree.write(final_path, encoding='utf-8', xml_declaration=True)
           "
@@ -92,11 +101,6 @@ jobs:
 
           # Keychain oluştur ve kilitlerini aç
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # Sertifikayı keychain'e aktar
-          security import $CERTIFICATE_PATH -k $KEYCHAIN_PATH -P "$P12_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/productsign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -s $KEYCHAIN_PATH $(security list-keychains | tr -d '"')
 
