@@ -29,40 +29,34 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Game-CI Resmi Lisans İsteği (Unity 6 İçin Otomatik .ulf Üretir)
-      - name: Request Unity License
-        uses: game-ci/unity-request-license@v4
-        id: license
+      # 3. Lisans Dosyasını macOS Sistem Klasörlerine Kopyala
+      - name: Inject Unity License File
         env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          unityVersion: 6000.4.9f1
-
-      # 4. Üretilen Lisansı macOS Sistem Klasörlerine Enjekte Et
-      - name: Inject Generated License
+          UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
 
-          echo "${{ steps.license.outputs.license }}" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          echo "${{ steps.license.outputs.license }}" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
+          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
           sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
           sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
 
-      # 5. Unity projesinden Xcode projesi çıktısı al (Game-CI Üretilen Lisans İle)
+      # 4. Unity projesinden Xcode projesi çıktısı al (Orijinal Lisans + CLI Oturumu)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
-          UNITY_LICENSE: ${{ steps.license.outputs.license }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
-          customParameters: -customBuildPath build/iOS
+          customParameters: -customBuildPath build/iOS -username "${{ secrets.UNITY_EMAIL }}" -password "${{ secrets.UNITY_PASSWORD }}"
           skipActivation: true
 
-      # 6. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
+      # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
       - name: Install Apple Certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -81,7 +75,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -s $KEYCHAIN_PATH $(security list-keychains | tr -d '"')
 
-      # 7. Provisioning Profile'ı macOS sistem klasörüne yükle
+      # 6. Provisioning Profile'ı macOS sistem klasörüne yükle
       - name: Install Provisioning Profile
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
@@ -93,7 +87,7 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      # 8. ExportOptions.plist dosyası oluştur (xcodebuild için)
+      # 7. ExportOptions.plist dosyası oluştur (xcodebuild için)
       - name: Create exportOptions.plist
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -126,7 +120,7 @@ jobs:
           </plist>
           EOF
 
-      # 9. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
+      # 8. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
       - name: Build Xcode Project to IPA
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -153,7 +147,7 @@ jobs:
             -exportPath output \
             -allowProvisioningUpdates
 
-      # 10. Üretilen IPA dosyasını TestFlight'a yükle
+      # 9. Üretilen IPA dosyasını TestFlight'a yükle
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
