@@ -29,29 +29,18 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. macOS klasör izinlerini düzelt (Application Support ve Caches)
-      - name: Fix Permissions for Buildalon
-        run: |
-          sudo chown -R $USER "/Library/Application Support" "/Library/Caches" || true
-          sudo chmod -R 777 "/Library/Application Support" "/Library/Caches" || true
-
-      # 4. Unity 6 Lisansını Otomatik Aktifleştir
-      - name: Activate Unity License
-        uses: buildalon/activate-unity-license@v1
-        with:
-          username: ${{ secrets.UNITY_EMAIL }}
-          password: ${{ secrets.UNITY_PASSWORD }}
-
-      # 5. Unity projesinden Xcode projesi çıktısı al
+      # 3. Unity projesinden Xcode projesi çıktısı al
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
           customParameters: -customBuildPath build/iOS
 
-      # 6. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
+      # 4. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
       - name: Install Apple Certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -75,7 +64,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -s $KEYCHAIN_PATH $(security list-keychains | tr -d '"')
 
-      # 7. Provisioning Profile'ı macOS sistem klasörüne yükle
+      # 5. Provisioning Profile'ı macOS sistem klasörüne yükle
       - name: Install Provisioning Profile
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
@@ -87,7 +76,7 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      # 8. ExportOptions.plist dosyası oluştur (xcodebuild için)
+      # 6. ExportOptions.plist dosyası oluştur (xcodebuild için)
       - name: Create exportOptions.plist
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -120,7 +109,7 @@ jobs:
           </plist>
           EOF
 
-      # 9. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
+      # 7. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
       - name: Build Xcode Project to IPA
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -147,7 +136,7 @@ jobs:
             -exportPath output \
             -allowProvisioningUpdates
 
-      # 10. Üretilen IPA dosyasını TestFlight'a yükle
+      # 8. Üretilen IPA dosyasını TestFlight'a yükle
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
