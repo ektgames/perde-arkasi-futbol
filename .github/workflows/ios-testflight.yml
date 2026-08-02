@@ -29,17 +29,30 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını macOS Sistem Klasörüne Yerleştir
+      # 3. Lisans Dosyasını macOS Donanımına Dinamik Bağla ve Enjekte Et
       - name: Inject Unity Entitlement License
         env:
           UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
-          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" > /dev/null
 
-      # 4. Unity projesinden Xcode projesi çıktısı al (Skips activation, uses injected license)
+          # 1. Lisansı yaz
+          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+
+          # 2. Sanal Mac sunucusunun gerçek MAC adresini al
+          MAC_ADDR=$(ifconfig | grep ether | awk '{print $2}' | head -n 1)
+          echo "Sanal Mac MAC Adresi: $MAC_ADDR"
+
+          # 3. Lisans dosyasındaki eski MAC adresini sanal Mac'inkiyle değiştir
+          sed -i '' "s/08:8f:c3:39:fa:6c/$MAC_ADDR/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+
+          # 4. Tüm lisans klasörlerine kopyala
+          cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
+          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
+
+      # 4. Unity projesinden Xcode projesi çıktısı al (Hardware matched license)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
