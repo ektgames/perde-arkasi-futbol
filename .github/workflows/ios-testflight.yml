@@ -7,6 +7,11 @@ on:
       - master
   workflow_dispatch:
 
+env:
+  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
 jobs:
   build-and-deploy:
     name: Build Unity iOS & Upload to TestFlight
@@ -29,24 +34,25 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını macOS Donanımına Tam Uyumlu Şekilde İşle ve Enjekte Et
-      - name: Inject Unity Entitlement License
-        env:
-          UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
+      # 3. Lisans Dosyasını İşle, Canlı Token Al ve macOS Sistem Klasörlerine Enjekte Et
+      - name: Inject Unity Entitlement License & Access Token
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
+          mkdir -p "$HOME/Library/Application Support/Unity/Services/Licensing"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
+          sudo mkdir -p "/Library/Application Support/Unity/Services/Licensing"
 
-          # 1. Ham lisansı geçici dosyaya yaz (Git dışındaki RUNNER_TEMP klasörüne)
-          echo "$UNITY_LICENSE_CONTENT" > "$RUNNER_TEMP/temp_license.xml"
+          # 1. Ham lisansı geçici dosyaya yaz
+          echo "$UNITY_LICENSE" > "$RUNNER_TEMP/temp_license.xml"
 
-          # 2. Python ile kilit türlerine göre donanım ve Machine ID eşlemesi yap
+          # 2. Python ile kilitleri eşleştir ve canlı oturum token'ı al
           python3 -c "
-          import sys, xml.etree.ElementTree as ET, subprocess, re, os
+          import sys, xml.etree.ElementTree as ET, subprocess, re, os, json, urllib.request
 
           temp_path = os.path.join(os.environ['RUNNER_TEMP'], 'temp_license.xml')
           final_path = os.path.join(os.environ['RUNNER_TEMP'], 'final_license.xml')
 
+          # Donanım Eşleme
           mac = subprocess.check_output(['ifconfig']).decode()
           mac_match = re.search(r'ether ([0-9a-fA-F:]+)', mac)
           mac_addr = mac_match.group(1).lower() if mac_match else '00:00:00:00:00:00'
@@ -62,6 +68,27 @@ jobs:
                   elem.set('Id', machine_id)
 
           tree.write(final_path, encoding='utf-8', xml_declaration=True)
+
+          # Access Token Alma
+          email = os.environ.get('UNITY_EMAIL', '')
+          password = os.environ.get('UNITY_PASSWORD', '')
+
+          if email and password:
+              try:
+                  url = 'https://id.unity.com/api/v1/sessions'
+                  data = json.dumps({'conversations': {'authenticity_token': ''}, 'email': email, 'password': password}).encode('utf-8')
+                  req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+                  with urllib.request.urlopen(req) as response:
+                      res = json.loads(response.read().decode())
+                      token = res.get('access_token') or res.get('id')
+                      if token:
+                          token_dir = os.path.expanduser('~/Library/Application Support/Unity/Services/Licensing')
+                          os.makedirs(token_dir, exist_ok=True)
+                          with open(os.path.join(token_dir, 'access_token'), 'w') as f:
+                              f.write(token)
+                          print('Live Access Token generated successfully!')
+              except Exception as e:
+                  print(f'Token note: {e}')
           "
 
           # 3. Tüm sistem klasörlerine kopyala
@@ -70,13 +97,13 @@ jobs:
           sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
           sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
 
-      # 4. Unity projesinden Xcode projesi çıktısı al (Lisans + Canlı Oturum Yetkisi)
+          if [ -f "$HOME/Library/Application Support/Unity/Services/Licensing/access_token" ]; then
+            sudo cp "$HOME/Library/Application Support/Unity/Services/Licensing/access_token" "/Library/Application Support/Unity/Services/Licensing/access_token"
+          fi
+
+      # 4. Unity projesinden Xcode projesi çıktısı al (Hardware Matched + Live Access Token)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
