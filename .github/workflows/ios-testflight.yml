@@ -56,7 +56,7 @@ jobs:
 
           # Keychain oluştur ve kilitlerini aç
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-key-chain-settings -lut 21600 $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
           # Sertifikayı keychain'e aktar
@@ -85,7 +85,7 @@ jobs:
         run: |
           cat <<EOF > build/iOS/exportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
               <key>method</key>
