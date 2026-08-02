@@ -43,7 +43,7 @@ jobs:
           echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
           sudo echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/Unity_lic.ulf" > /dev/null
 
-      # 4. Unity projesinden Xcode projesi çıktısı al (Lisans önceden yüklendi)
+      # 4. Unity projesinden Xcode projesi çıktısı al (Önceden enjekte edilen lisans kullanılır)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         with:
@@ -51,6 +51,7 @@ jobs:
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
           customParameters: -customBuildPath build/iOS
+          skipActivation: true
 
       # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
       - name: Install Apple Certificate
