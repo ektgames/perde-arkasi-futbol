@@ -41,11 +41,13 @@ jobs:
           echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" > /dev/null
           echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/Unity_lic.ulf" > /dev/null
 
-      # 4. Unity projesinden Xcode projesi çıktısı al (Enjekte edilen lisans ile aktifleştirmeyi atla)
+      # 4. Unity projesinden Xcode projesi çıktısı al (Lisans + E-posta/Şifre + skipActivation)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
