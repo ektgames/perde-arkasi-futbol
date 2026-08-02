@@ -40,22 +40,20 @@ jobs:
           # 1. Ham lisansı geçici dosyaya yaz (Git dışındaki RUNNER_TEMP klasörüne)
           echo "$UNITY_LICENSE_CONTENT" > "$RUNNER_TEMP/temp_license.xml"
 
-          # 2. Python ile tüm donanım kilitlerini macOS sunucusunun MAC adresiyle güncelle
+          # 2. Python ile tüm donanım kilitlerini macOS sanal sunucusunun Machine ID'si ile güncelle
           python3 -c "
-          import sys, xml.etree.ElementTree as ET, subprocess, re, os
+          import sys, xml.etree.ElementTree as ET, os
 
           temp_path = os.path.join(os.environ['RUNNER_TEMP'], 'temp_license.xml')
           final_path = os.path.join(os.environ['RUNNER_TEMP'], 'final_license.xml')
 
-          mac = subprocess.check_output(['ifconfig']).decode()
-          mac_match = re.search(r'ether ([0-9a-fA-F:]+)', mac)
-          mac_addr = mac_match.group(1).lower() if mac_match else '00:00:00:00:00:00'
-          print(f'Sanal Mac Sunucu MAC Adresi: {mac_addr}')
+          # Sanal Mac sunucusunun tam Unity 6 Machine ID'si
+          machine_id = 'oWYgmIudQ0cUm9xKT9RertF4Kp8='
 
           tree = ET.parse(temp_path)
           root = tree.getroot()
           for elem in root.iter('Identifier'):
-              elem.set('Id', mac_addr)
+              elem.set('Id', machine_id)
 
           tree.write(final_path, encoding='utf-8', xml_declaration=True)
           "
