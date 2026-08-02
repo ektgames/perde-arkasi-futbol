@@ -29,42 +29,30 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını macOS Donanımına Dinamik Bağla ve Enjekte Et
-      - name: Inject Unity Entitlement License
+      # 3. Lisans Dosyasını macOS Sistem Klasörlerine Kopyala
+      - name: Inject Unity License File
         env:
           UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
-
-          # 1. Lisansı yaz
           echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
+          echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" > /dev/null
+          echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/Unity_lic.ulf" > /dev/null
 
-          # 2. Sanal Mac sunucusunun tam Machine ID'sini ve MAC adresini eşle
-          MAC_ADDR=$(ifconfig | grep ether | awk '{print $2}' | head -n 1)
-          echo "Sanal Mac MAC Adresi: $MAC_ADDR"
-
-          sed -i '' "s/08:8f:c3:39:fa:6c/$MAC_ADDR/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sed -i '' "s/TkhRQjBFWTAwMzIxMjJCNjU1MzQwMA==/oWYgmIudQ0cUm9xKT9RertF4Kp8=/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sed -i '' "s/00330-80000-00000-AA429/oWYgmIudQ0cUm9xKT9RertF4Kp8=/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sed -i '' "s/8E328_AF_6FB350_00_100B14_84_B547E4_BC.F/oWYgmIudQ0cUm9xKT9RertF4Kp8=/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-
-          # 3. Tüm lisans klasörlerine kopyala
-          cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
-          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
-
-      # 4. Unity projesinden Xcode projesi çıktısı al (Hardware matched license)
+      # 4. Unity projesinden Xcode projesi çıktısı al (Tam Yetki Üçlüsü)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
           customParameters: -customBuildPath build/iOS
-          skipActivation: true
 
       # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
       - name: Install Apple Certificate
