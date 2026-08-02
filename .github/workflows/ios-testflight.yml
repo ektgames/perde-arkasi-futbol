@@ -29,9 +29,11 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. macOS klasör izinlerini düzelt
+      # 3. macOS klasör izinlerini düzelt (Tüm Application Support klasörleri için)
       - name: Fix Permissions for Buildalon
-        run: sudo chmod -R 777 "/Library/Application Support/Apple/" || true
+        run: |
+          sudo chown -R $USER "/Library/Application Support" || true
+          sudo chmod -R 777 "/Library/Application Support" || true
 
       # 4. Unity 6 Lisansını Otomatik Aktifleştir
       - name: Activate Unity License
