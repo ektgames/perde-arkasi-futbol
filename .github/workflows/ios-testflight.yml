@@ -40,14 +40,16 @@ jobs:
           # 1. Lisansı yaz
           echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
 
-          # 2. Sanal Mac sunucusunun gerçek MAC adresini al
+          # 2. Sanal Mac sunucusunun tam Machine ID'sini ve MAC adresini eşle
           MAC_ADDR=$(ifconfig | grep ether | awk '{print $2}' | head -n 1)
           echo "Sanal Mac MAC Adresi: $MAC_ADDR"
 
-          # 3. Lisans dosyasındaki eski MAC adresini sanal Mac'inkiyle değiştir
           sed -i '' "s/08:8f:c3:39:fa:6c/$MAC_ADDR/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          sed -i '' "s/TkhRQjBFWTAwMzIxMjJCNjU1MzQwMA==/oWYgmIudQ0cUm9xKT9RertF4Kp8=/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          sed -i '' "s/00330-80000-00000-AA429/oWYgmIudQ0cUm9xKT9RertF4Kp8=/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          sed -i '' "s/8E328_AF_6FB350_00_100B14_84_B547E4_BC.F/oWYgmIudQ0cUm9xKT9RertF4Kp8=/g" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
 
-          # 4. Tüm lisans klasörlerine kopyala
+          # 3. Tüm lisans klasörlerine kopyala
           cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
           sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
           sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
