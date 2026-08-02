@@ -29,17 +29,48 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını Unity 6 Özel Klasörüne Yaz
-      - name: Inject Unity 6 Entitlement License
+      # 3. Lisans Dosyasını Sanal Mac Machine ID'si ile İşle ve Sistem Klasörlerine Yaz
+      - name: Inject Hardware Matched Unity 6 License
         env:
           UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
-          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
 
-      # 4. Unity projesinden Xcode projesi çıktısı al (Unity 6 Lisansı İle)
+          # 1. Ham lisansı geçici dosyaya yaz
+          echo "$UNITY_LICENSE_CONTENT" > "$RUNNER_TEMP/temp_license.xml"
+
+          # 2. Python ile sanal Mac donanım kilitlerini eşleştir
+          python3 -c "
+          import sys, xml.etree.ElementTree as ET, subprocess, re, os
+
+          temp_path = os.path.join(os.environ['RUNNER_TEMP'], 'temp_license.xml')
+          final_path = os.path.join(os.environ['RUNNER_TEMP'], 'final_license.xml')
+
+          mac = subprocess.check_output(['ifconfig']).decode()
+          mac_match = re.search(r'ether ([0-9a-fA-F:]+)', mac)
+          mac_addr = mac_match.group(1).lower() if mac_match else '00:00:00:00:00:00'
+          machine_id = 'oWYgmIudQ0cUm9xKT9RertF4Kp8='
+
+          tree = ET.parse(temp_path)
+          root = tree.getroot()
+          for elem in root.iter('Identifier'):
+              t = elem.get('Type')
+              if t == 'Legacy.MachineBinding5':
+                  elem.set('Id', mac_addr)
+              elif t in ['Legacy.MachineBinding1', 'Legacy.MachineBinding2', 'Legacy.MachineBinding4']:
+                  elem.set('Id', machine_id)
+
+          tree.write(final_path, encoding='utf-8', xml_declaration=True)
+          "
+
+          # 3. Tüm sistem klasörlerine kopyala
+          cp "$RUNNER_TEMP/final_license.xml" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          cp "$RUNNER_TEMP/final_license.xml" "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
+          sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
+
+      # 4. Unity projesinden Xcode projesi çıktısı al (Hardware Matched License)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
