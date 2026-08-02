@@ -29,31 +29,38 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını macOS Sistem Klasörlerine Kopyala
-      - name: Inject Unity License File
+      # 3. Lisans Dosyasını İşle ve Unity Editor CLI İle Oturum Aç
+      - name: Inject Unity License & Authenticate Native CLI
         env:
           UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
 
+          # 1. Lisans dosyasını yaz ve tam izinleri ver
           echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
           echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
           sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
           sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
 
-      # 4. Unity projesinden Xcode projesi çıktısı al (Orijinal Lisans + CLI Oturumu)
+          sudo chmod -R 777 "$HOME/Library/Application Support/Unity"
+          sudo chmod -R 777 "/Library/Application Support/Unity"
+
+          # 2. Orijinal Unity Editor CLI ile oturum aç ve canlı token'ı hafızaya al
+          /Applications/Unity/Hub/Editor/6000.4.9f1/Unity.app/Contents/MacOS/Unity -batchmode -nographics -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" -quit || true
+
+      # 4. Unity projesinden Xcode projesi çıktısı al (Hazır Canlı Token ve Lisans ile)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
-          customParameters: -customBuildPath build/iOS -username "${{ secrets.UNITY_EMAIL }}" -password "${{ secrets.UNITY_PASSWORD }}"
+          customParameters: -customBuildPath build/iOS
           skipActivation: true
 
       # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
