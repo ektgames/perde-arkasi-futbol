@@ -7,11 +7,6 @@ on:
       - master
   workflow_dispatch:
 
-env:
-  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-
 jobs:
   build-and-deploy:
     name: Build Unity iOS & Upload to TestFlight
@@ -34,76 +29,32 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını İşle, Canlı Token Al ve macOS Sistem Klasörlerine Enjekte Et
-      - name: Inject Unity Entitlement License & Access Token
+      # 3. Game-CI Resmi Lisans İsteği (Unity 6 İçin Otomatik .ulf Üretir)
+      - name: Request Unity License
+        uses: game-ci/unity-request-license@v4
+        id: license
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.4.9f1
+
+      # 4. Üretilen Lisansı macOS Sistem Klasörlerine Enjekte Et
+      - name: Inject Generated License
         run: |
           mkdir -p "$HOME/Library/Application Support/Unity/licenses"
-          mkdir -p "$HOME/Library/Application Support/Unity/Services/Licensing"
           sudo mkdir -p "/Library/Application Support/Unity/licenses"
-          sudo mkdir -p "/Library/Application Support/Unity/Services/Licensing"
 
-          # 1. Ham lisansı geçici dosyaya yaz
-          echo "$UNITY_LICENSE" > "$RUNNER_TEMP/temp_license.xml"
+          echo "${{ steps.license.outputs.license }}" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          echo "${{ steps.license.outputs.license }}" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
+          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
+          sudo cp "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
 
-          # 2. Python ile kilitleri eşleştir ve canlı oturum token'ı al
-          python3 -c "
-          import sys, xml.etree.ElementTree as ET, subprocess, re, os, json, urllib.request
-
-          temp_path = os.path.join(os.environ['RUNNER_TEMP'], 'temp_license.xml')
-          final_path = os.path.join(os.environ['RUNNER_TEMP'], 'final_license.xml')
-
-          # Donanım Eşleme
-          mac = subprocess.check_output(['ifconfig']).decode()
-          mac_match = re.search(r'ether ([0-9a-fA-F:]+)', mac)
-          mac_addr = mac_match.group(1).lower() if mac_match else '00:00:00:00:00:00'
-          machine_id = 'oWYgmIudQ0cUm9xKT9RertF4Kp8='
-
-          tree = ET.parse(temp_path)
-          root = tree.getroot()
-          for elem in root.iter('Identifier'):
-              t = elem.get('Type')
-              if t == 'Legacy.MachineBinding5':
-                  elem.set('Id', mac_addr)
-              elif t in ['Legacy.MachineBinding1', 'Legacy.MachineBinding2', 'Legacy.MachineBinding4']:
-                  elem.set('Id', machine_id)
-
-          tree.write(final_path, encoding='utf-8', xml_declaration=True)
-
-          # Access Token Alma
-          email = os.environ.get('UNITY_EMAIL', '')
-          password = os.environ.get('UNITY_PASSWORD', '')
-
-          if email and password:
-              try:
-                  url = 'https://id.unity.com/api/v1/sessions'
-                  data = json.dumps({'conversations': {'authenticity_token': ''}, 'email': email, 'password': password}).encode('utf-8')
-                  req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
-                  with urllib.request.urlopen(req) as response:
-                      res = json.loads(response.read().decode())
-                      token = res.get('access_token') or res.get('id')
-                      if token:
-                          token_dir = os.path.expanduser('~/Library/Application Support/Unity/Services/Licensing')
-                          os.makedirs(token_dir, exist_ok=True)
-                          with open(os.path.join(token_dir, 'access_token'), 'w') as f:
-                              f.write(token)
-                          print('Live Access Token generated successfully!')
-              except Exception as e:
-                  print(f'Token note: {e}')
-          "
-
-          # 3. Tüm sistem klasörlerine kopyala
-          cp "$RUNNER_TEMP/final_license.xml" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          cp "$RUNNER_TEMP/final_license.xml" "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
-          sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
-
-          if [ -f "$HOME/Library/Application Support/Unity/Services/Licensing/access_token" ]; then
-            sudo cp "$HOME/Library/Application Support/Unity/Services/Licensing/access_token" "/Library/Application Support/Unity/Services/Licensing/access_token"
-          fi
-
-      # 4. Unity projesinden Xcode projesi çıktısı al (Hardware Matched + Live Access Token)
+      # 5. Unity projesinden Xcode projesi çıktısı al (Game-CI Üretilen Lisans İle)
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ steps.license.outputs.license }}
         with:
           targetPlatform: iOS
           unityVersion: 6000.4.9f1
@@ -111,7 +62,7 @@ jobs:
           customParameters: -customBuildPath build/iOS
           skipActivation: true
 
-      # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
+      # 6. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
       - name: Install Apple Certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -130,7 +81,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -s $KEYCHAIN_PATH $(security list-keychains | tr -d '"')
 
-      # 6. Provisioning Profile'ı macOS sistem klasörüne yükle
+      # 7. Provisioning Profile'ı macOS sistem klasörüne yükle
       - name: Install Provisioning Profile
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
@@ -142,7 +93,7 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      # 7. ExportOptions.plist dosyası oluştur (xcodebuild için)
+      # 8. ExportOptions.plist dosyası oluştur (xcodebuild için)
       - name: Create exportOptions.plist
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -175,7 +126,7 @@ jobs:
           </plist>
           EOF
 
-      # 8. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
+      # 9. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
       - name: Build Xcode Project to IPA
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -202,7 +153,7 @@ jobs:
             -exportPath output \
             -allowProvisioningUpdates
 
-      # 9. Üretilen IPA dosyasını TestFlight'a yükle
+      # 10. Üretilen IPA dosyasını TestFlight'a yükle
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
