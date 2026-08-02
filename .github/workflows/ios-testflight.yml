@@ -29,21 +29,13 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Unity Lisans Dosyasını macOS Sistem Klasörlerine Doğrudan Enjekte Et
-      - name: Inject Unity Entitlement License
-        env:
-          UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
-        run: |
-          mkdir -p "$HOME/Library/Application Support/Unity/licenses"
-          sudo mkdir -p "/Library/Application Support/Unity/licenses"
-          sudo chmod -R 777 "/Library/Application Support/Unity" || true
+      # 3. Unity Lisans Aktivasyon Dosyası Üret (.alf)
+      - name: Request activation file
+        uses: game-ci/unity-request-activation-file@v2
+        with:
+          unityVersion: 6000.4.9f1
 
-          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sudo echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml" > /dev/null
-          echo "$UNITY_LICENSE_CONTENT" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
-          sudo echo "$UNITY_LICENSE_CONTENT" | sudo tee "/Library/Application Support/Unity/Unity_lic.ulf" > /dev/null
-
-      # 4. Unity projesinden Xcode projesi çıktısı al (Önceden enjekte edilen lisans kullanılır)
+      # 4. Unity projesinden Xcode projesi çıktısı al
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
@@ -53,7 +45,6 @@ jobs:
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
           customParameters: -customBuildPath build/iOS
-          skipActivation: true
 
       # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
       - name: Install Apple Certificate
