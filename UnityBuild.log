@@ -1,0 +1,22 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ertug" at "2026-08-02T19:29:15.952759Z"
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.1'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-ertug"
+[Licensing::IpcConnector] LicenseClient-ertug channel disconnected successfully.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ertug-6000.4.9" at "2026-08-02T19:29:18.4682611Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 9056, path: "C:/Program Files/Unity/Hub/Editor/6000.4.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              24a476aeada24445844b953cbaa50969
+  Correlation Id:          df7bca61b27fb29409f8d993092167db
+  External correlation Id: 7890062758029241590
+  Machine Id:              LJbwdiNK++Y7XiGm/dXthOS0Ynw=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-ertug-6000.4.9" (connect: 0.00s, validation: 0.01s, handshake: 0.09s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ertug-6000.4.9-notifications" at "2026-08-02T19:29:18.5668707Z"
+[Licensing::Module] Generating manual activation license file: C:\Users\ertug\Desktop\Perde Arkası Futbol/Unity_v6000.4.9f1.alf
+[Licensing::Client] Successfully processed ALF generation request: C:\Users\ertug\Desktop\Perde Arkası Futbol\Unity_v6000.4.9f1.alf
+[Licensing::Module] Manual activation license file successfully saved.
+Exiting without the bug reporter. Application will terminate with return code 0
