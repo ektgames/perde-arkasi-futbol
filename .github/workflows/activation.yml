@@ -8,8 +8,15 @@ jobs:
     name: Generate .alf file
     runs-on: ubuntu-latest
     steps:
-      - name: Request manual activation file
-        uses: game-ci/unity-request-activation-file@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate manual activation file
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: iOS
+          unityVersion: 6000.4.9f1
+          customParameters: -createManualActivationFile
 
       - name: Upload activation file as artifact
         uses: actions/upload-artifact@v4
