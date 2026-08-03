@@ -1,4 +1,4 @@
-name: Build iOS & Deploy to TestFlight
+name: Build iOS & Deploy to TestFlight via Unity DevOps
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-unity:
-    name: Build Unity iOS (to Xcode)
+  unity-devops-testflight:
+    name: Build via Unity DevOps & Deploy to TestFlight
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -17,248 +17,181 @@ jobs:
       # 1. Depoyu klonla
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
-      # 2. Unity Library önbelleğini yükle (Derlemeleri hızlandırır)
-      - name: Cache Unity Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-${{ runner.os }}-
-
-      # 3. Docker içinde Unity 6 Editor çalıştırıp Xcode projesini üret (Lisans Dosyası Doğrudan Enjekte Edildi)
-      - name: Build Unity Project to Xcode via Docker
-        run: |
-          mkdir -p build/iOS
-          mkdir -p "$RUNNER_TEMP/unity_license"
-
-          # Generic Game-CI Unity Lisansını Yaz
-          cat << 'EOF' > "$RUNNER_TEMP/unity_license/Unity_lic.ulf"
-          <?xml version="1.0" encoding="UTF-8"?>
-          <root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <License Id="Terms" IssueDate="2026-08-02T13:45:43.151Z" Version="1.0">
-              <EntitlementGroups>
-                <EntitlementGroup Id="18968442526123-UnityPersonal" Namespace="unity_editor" Product="Unity Personal" SubsGroup="Unity Editor" Tag="UnityPersonal" Type="EDITOR">
-                  <Context>
-                    <User Id="18968442526123" />
-                    <StartDate>2026-06-01T11:51:34Z</StartDate>
-                    <UpdateDate>2026-09-01T13:45:43.150Z</UpdateDate>
-                    <Identifiers/>
-                  </Context>
-                  <Entitlements>
-                    <Entitlement Id="com.unity.editor" />
-                    <Entitlement Id="com.unity.editor.ui" />
-                    <Entitlement Id="com.unity.editor.headless" />
-                    <Entitlement Id="com.unity.editor.dark-skin" />
-                    <Entitlement Id="com.unity.editor.legacy.team-license" />
-                    <Entitlement Id="com.unity.editor.platforms.android" />
-                    <Entitlement Id="com.unity.editor.platforms.ios" />
-                    <Entitlement Id="com.unity.editor.platforms.uwp" />
-                  </Entitlements>
-                </EntitlementGroup>
-                <EntitlementGroup Id="organization-all-asset-store-upm-packages" Namespace="asset_store" Product="Asset Store" Type="upm-package">
-                  <Context>
-                    <User Id="18968442526123" />
-                    <UpdateDate>2026-09-01T13:45:43.150Z</UpdateDate>
-                    <Identifiers/>
-                  </Context>
-                  <Entitlements>
-                    <Entitlement Id="com.meta.xr.mrutilitykit" />
-                    <Entitlement Id="com.meta.xr.runtimeoptimizer" />
-                    <Entitlement Id="com.meta.xr.sdk.all" />
-                    <Entitlement Id="com.meta.xr.sdk.audio" />
-                    <Entitlement Id="com.meta.xr.sdk.avatars" />
-                    <Entitlement Id="com.meta.xr.sdk.avatars.sample.assets" />
-                    <Entitlement Id="com.meta.xr.sdk.core" />
-                    <Entitlement Id="com.meta.xr.sdk.haptics" />
-                    <Entitlement Id="com.meta.xr.sdk.interaction" />
-                    <Entitlement Id="com.meta.xr.sdk.interaction.ovr" />
-                    <Entitlement Id="com.meta.xr.sdk.interaction.ovr.samples" />
-                    <Entitlement Id="com.meta.xr.sdk.platform" />
-                    <Entitlement Id="com.meta.xr.sdk.sharedassets" />
-                    <Entitlement Id="com.meta.xr.sdk.utilities" />
-                    <Entitlement Id="com.meta.xr.sdk.voice" />
-                    <Entitlement Id="com.meta.xr.sdk.voice.composer" />
-                    <Entitlement Id="com.meta.xr.sdk.voice.dictation" />
-                    <Entitlement Id="com.meta.xr.sdk.voice.telemetry" />
-                    <Entitlement Id="com.meta.xr.simulator" />
-                    <Entitlement Id="com.meta.xr.simulator.samples" />
-                    <Entitlement Id="com.meta.xr.simulator.synthenvbuilder" />
-                    <Entitlement Id="com.microsoft.mixedreality.openxr" />
-                    <Entitlement Id="com.microsoft.mixedreality.webview.unity" />
-                    <Entitlement Id="com.microsoft.mrtk.graphicstools.unity" />
-                    <Entitlement Id="com.microsoft.mrtk.tts.windows" />
-                    <Entitlement Id="com.microsoft.spatialaudio.spatializer.unity" />
-                    <Entitlement Id="org.mixedrealitytoolkit.audio" />
-                    <Entitlement Id="org.mixedrealitytoolkit.core" />
-                    <Entitlement Id="org.mixedrealitytoolkit.diagnostics" />
-                    <Entitlement Id="org.mixedrealitytoolkit.extendedassets" />
-                    <Entitlement Id="org.mixedrealitytoolkit.input" />
-                    <Entitlement Id="org.mixedrealitytoolkit.spatialmanipulation" />
-                    <Entitlement Id="org.mixedrealitytoolkit.standardassets" />
-                    <Entitlement Id="org.mixedrealitytoolkit.tools" />
-                    <Entitlement Id="org.mixedrealitytoolkit.uxcomponents" />
-                    <Entitlement Id="org.mixedrealitytoolkit.uxcomponents.noncanvas" />
-                    <Entitlement Id="org.mixedrealitytoolkit.uxcore" />
-                    <Entitlement Id="org.mixedrealitytoolkit.windowsspeech" />
-                  </Entitlements>
-                </EntitlementGroup>
-              </EntitlementGroups>
-            </License>
-            <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
-              <SignedInfo>
-                <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" />
-                <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
-                <Reference URI="#Terms">
-                  <Transforms>
-                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
-                  </Transforms>
-                  <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
-                  <DigestValue>AAsol11KvPqcCLgs2vlOHRCeS3Go2pGHfBrpjvx/Cf4=</DigestValue>
-                </Reference>
-              </SignedInfo>
-              <SignatureValue>zxtngz9vIahCI867m7e5yGO5navaLZ5CDCfF4sJkh/kouWBF8nA+6xUhQYFCJqwngThRiwFeEddtUQzYZH6fPYEjhgfxqN0dX3YpfsTY60K31yUSsfMVshfwR3+Wxyrkghn2BUcIubQ0xhsyaypa8b0lHP3X+hC3QysqnD6hCgB8gkQWfnlp/LYgYuo5FVvrhhF6PP9Fg/+cPJtvxSXXtdjm88bZkbU7JfJoT1UxVIxI8z87/IJ+z+T/0MfRIq/kHNJ+v7dYoKpjFtT16t3JesseOUdKbSljNL1i6Ybls5h0sP39YVDx7+aWb6XVF/uxybng0PEeB4zJHWKk8C+te3EQg==</SignatureValue>
-            </Signature>
-          </root>
-          EOF
-
-          # Docker İçinde Unity Editor Çalıştır
-          docker run --rm \
-            -v "$(pwd):/project" \
-            -v "$RUNNER_TEMP/unity_license/Unity_lic.ulf:/root/.local/share/unity3d/Unity/Unity_lic.ulf" \
-            -v "$RUNNER_TEMP/unity_license/Unity_lic.ulf:/root/.config/unity3d/Unity/Unity_lic.ulf" \
-            -w /project \
-            unityci/editor:ubuntu-6000.4.9f1-ios-3 \
-            unity-editor -batchmode -nographics -projectPath /project -executeMethod iOSBuildScript.BuildForiOS -customBuildPath build/iOS -quit
-
-      # 4. Üretilen Xcode projesini macOS işine aktarmak için yükle
-      - name: Upload Xcode Project Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-xcode-build
-          path: build/iOS
-          retention-days: 1
-
-  deploy-testflight:
-    name: Build Xcode & Upload to TestFlight
-    needs: build-unity
-    runs-on: macos-14
-    timeout-minutes: 60
-
-    steps:
-      # 1. Depoyu klonla
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2. Linux işinde üretilen Xcode projesini indir
-      - name: Download Xcode Project Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-xcode-build
-          path: build/iOS
-
-      # 3. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e aktar
-      - name: Install Apple Certificate
+      # 2. Unity DevOps Build Automation API ile derlemeyi başlat/izle ve IPA'yı indir
+      - name: Trigger Unity DevOps Build & Download IPA
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASS }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          UNITY_DEVOPS_API_KEY: ${{ secrets.UNITY_DEVOPS_API_KEY }}
+          UNITY_ORG_ID: ${{ secrets.UNITY_ORG_ID }}
+          UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
+          UNITY_BUILD_TARGET_ID: ${{ secrets.UNITY_BUILD_TARGET_ID }}
         run: |
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          python3 -c '
+          import os, sys, time, json, urllib.request, urllib.error, base64, zipfile
 
-          # Base64 sertifikayı p12 olarak yaz
-          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          api_key = os.environ.get("UNITY_DEVOPS_API_KEY", "").strip()
+          org_id = os.environ.get("UNITY_ORG_ID", "").strip()
+          project_id = os.environ.get("UNITY_PROJECT_ID", "").strip()
+          target_id = os.environ.get("UNITY_BUILD_TARGET_ID", "").strip() or "ios"
+          commit_sha = os.environ.get("GITHUB_SHA", "").strip()
 
-          # Keychain oluştur ve kilitlerini aç
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-key-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          if not api_key or not org_id or not project_id:
+              print("ERROR: Missing required secrets! Please configure UNITY_DEVOPS_API_KEY, UNITY_ORG_ID, and UNITY_PROJECT_ID in GitHub Repository Secrets.")
+              sys.exit(1)
 
-          # Sertifikayı keychain içine aktar ve erişim izinlerini ver
-          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$P12_PASSWORD" -A -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychains -s "$KEYCHAIN_PATH" $(security list-keychains | tr -d '"')
+          base_url = f"https://build-api.cloud.unity3d.com/api/v1/orgs/{org_id}/projects/{project_id}/buildtargets/{target_id}"
 
-      # 4. Provisioning Profile'ı macOS sistem klasörüne yükle
-      - name: Install Provisioning Profile
-        env:
-          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
-          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PP_PATH"
+          auth_headers = [
+              f"Basic {api_key}",
+              f"Basic {base64.b64encode(f\"{api_key}:\".encode()).decode()}",
+              f"Bearer {api_key}"
+          ]
 
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+          # Redirect handler that strips Auth header for external cloud storage S3/GCS redirects
+          class StripAuthRedirectHandler(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  new_req = super().redirect_request(req, fp, code, msg, headers, newurl)
+                  if new_req and ("s3.amazonaws.com" in newurl or "storage.googleapis.com" in newurl or "cloudfront.net" in newurl):
+                      if new_req.has_header("Authorization"):
+                          new_req.remove_header("Authorization")
+                  return new_req
 
-      # 5. ExportOptions.plist dosyası oluştur (xcodebuild için)
-      - name: Create exportOptions.plist
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
-          PROVISIONING_PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
-        run: |
-          cat <<EOF > build/iOS/exportOptions.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store</string>
-              <key>teamID</key>
-              <string>${APPLE_TEAM_ID}</string>
-              <key>uploadSymbols</key>
-              <true/>
-              <key>compileBitcode</key>
-              <false/>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>signingCertificate</key>
-              <string>Apple Distribution</string>
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>${BUNDLE_ID}</key>
-                  <string>${PROVISIONING_PROFILE_NAME}</string>
-              </dict>
-          </dict>
-          </plist>
-          EOF
+          opener = urllib.request.build_opener(StripAuthRedirectHandler())
 
-      # 6. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
-      - name: Build Xcode Project to IPA
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          PROVISIONING_PROFILE_SPECIFIER: ${{ secrets.PROVISIONING_PROFILE_NAME }}
-        run: |
-          cd build/iOS
-          
-          # Xcode Archive
-          xcodebuild archive \
-            -project Unity-iPhone.xcodeproj \
-            -scheme Unity-iPhone \
-            -configuration Release \
-            -archivePath build/Unity-iPhone.xcarchive \
-            DEVELOPMENT_TEAM="${APPLE_TEAM_ID}" \
-            CODE_SIGN_STYLE="Manual" \
-            PROVISIONING_PROFILE_SPECIFIER="${PROVISIONING_PROFILE_SPECIFIER}" \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            -allowProvisioningUpdates
+          def make_request(url, method="GET", data=None):
+              last_err = None
+              for auth_hdr in auth_headers:
+                  req = urllib.request.Request(url, method=method)
+                  req.add_header("Authorization", auth_hdr)
+                  req.add_header("Content-Type", "application/json")
+                  if data:
+                      req.data = json.dumps(data).encode("utf-8")
+                  try:
+                      with opener.open(req) as resp:
+                          return json.loads(resp.read().decode("utf-8")), resp.status
+                  except urllib.error.HTTPError as e:
+                      last_err = e
+                      if e.code == 401:
+                          continue
+                      body = e.read().decode("utf-8", errors="ignore")
+                      print(f"HTTP Error {e.code}: {body}")
+                      raise e
+              print("HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY.")
+              raise last_err
 
-          # IPA Export
-          xcodebuild -exportArchive \
-            -archivePath build/Unity-iPhone.xcarchive \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath output \
-            -allowProvisioningUpdates
+          print(f"=== Checking existing Unity DevOps builds for target '\''{target_id}'\'' ===")
+          build_num = None
 
-      # 7. Üretilen IPA dosyasını TestFlight'a yükle
-      - name: Upload to TestFlight
+          try:
+              builds, _ = make_request(f"{base_url}/builds?limit=10")
+              for b in builds:
+                  if b.get("lastBuiltRevision") == commit_sha or b.get("commit") == commit_sha:
+                      b_status = b.get("buildStatus")
+                      if b_status in ["queued", "started", "success"]:
+                          build_num = b.get("build")
+                          print(f"Found existing build #{build_num} with status '\''{b_status}'\'' for commit {commit_sha}")
+                          break
+          except Exception as e:
+              print(f"Notice querying builds: {e}")
+
+          if not build_num:
+              print(f"Triggering new Unity DevOps build for target '\''{target_id}'\'' on commit {commit_sha}...")
+              trigger_data = {"clean": False, "commit": commit_sha, "label": f"GitHub Actions {commit_sha[:7]}"}
+              try:
+                  resp, _ = make_request(f"{base_url}/builds", method="POST", data=trigger_data)
+                  if isinstance(resp, list) and len(resp) > 0:
+                      build_num = resp[0].get("build")
+                  elif isinstance(resp, dict):
+                      build_num = resp.get("build")
+                  print(f"Build #{build_num} successfully queued on Unity DevOps!")
+              except Exception as e:
+                  print(f"Failed to trigger build via API: {e}")
+                  sys.exit(1)
+
+          print(f"=== Polling Unity DevOps build #{build_num} status ===")
+          max_wait_minutes = 90
+          poll_interval = 30
+          elapsed = 0
+          ipa_url = None
+
+          while elapsed < max_wait_minutes * 60:
+              try:
+                  b_info, _ = make_request(f"{base_url}/builds/{build_num}")
+                  status = b_info.get("buildStatus")
+                  print(f"Build #{build_num} status: '\''{status}'\'' ({elapsed // 60}m {elapsed % 60}s elapsed)")
+
+                  if status == "success":
+                      links = b_info.get("links", {})
+                      if "download" in links:
+                          ipa_url = links["download"].get("href")
+
+                      if not ipa_url:
+                          artifacts, _ = make_request(f"{base_url}/builds/{build_num}/artifacts")
+                          for art in artifacts:
+                              for file_info in art.get("files", []):
+                                  fn = file_info.get("filename", "")
+                                  if fn.endswith(".ipa") or file_info.get("name", "").endswith(".ipa"):
+                                      ipa_url = file_info.get("href")
+                                      break
+                              if ipa_url:
+                                  break
+                      break
+                  elif status in ["failure", "canceled"]:
+                      print(f"ERROR: Unity DevOps build #{build_num} failed with status '\''{status}'\''.")
+                      sys.exit(1)
+              except Exception as e:
+                  print(f"Warning during polling: {e}")
+
+              time.sleep(poll_interval)
+              elapsed += poll_interval
+
+          if not ipa_url:
+              print("ERROR: Could not retrieve IPA download URL from completed Unity DevOps build.")
+              sys.exit(1)
+
+          print(f"=== Downloading build artifact ===")
+          download_path = "build_download.tmp"
+          download_success = False
+
+          for auth_hdr in auth_headers + [None]:
+              req = urllib.request.Request(ipa_url)
+              if auth_hdr:
+                  req.add_header("Authorization", auth_hdr)
+              try:
+                  with opener.open(req) as resp, open(download_path, "wb") as out_file:
+                      out_file.write(resp.read())
+                  download_success = True
+                  break
+              except urllib.error.HTTPError:
+                  continue
+
+          if not download_success:
+              print("ERROR: Failed to download artifact from Unity DevOps.")
+              sys.exit(1)
+
+          if zipfile.is_zipfile(download_path):
+              print("Downloaded file is a ZIP archive, extracting .ipa...")
+              with zipfile.ZipFile(download_path, "r") as zip_ref:
+                  ipa_members = [m for m in zip_ref.namelist() if m.endswith(".ipa")]
+                  if ipa_members:
+                      zip_ref.extract(ipa_members[0], ".")
+                      if ipa_members[0] != "Unity-iPhone.ipa":
+                          os.rename(ipa_members[0], "Unity-iPhone.ipa")
+                  else:
+                      print("ERROR: No .ipa file found inside downloaded ZIP archive.")
+                      sys.exit(1)
+              os.remove(download_path)
+          else:
+              os.rename(download_path, "Unity-iPhone.ipa")
+
+          print("Download and extraction complete: '\''Unity-iPhone.ipa'\''")
+          '
+
+      # 3. Üretilen ve indirilen IPA dosyasını TestFlight'a yükle
+      - name: Upload IPA to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
-          app-path: 'build/iOS/output/Unity-iPhone.ipa'
+          app-path: 'Unity-iPhone.ipa'
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
