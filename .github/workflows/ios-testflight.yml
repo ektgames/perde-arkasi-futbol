@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    name: Build Unity iOS & Upload to TestFlight
-    runs-on: macos-14
+  build-unity:
+    name: Build Unity iOS (to Xcode)
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     steps:
@@ -29,48 +29,7 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # 3. Lisans Dosyasını Sanal Mac Machine ID'si ile İşle ve Sistem Klasörlerine Yaz
-      - name: Inject Hardware Matched Unity 6 License
-        env:
-          UNITY_LICENSE_CONTENT: ${{ secrets.UNITY_LICENSE }}
-        run: |
-          mkdir -p "$HOME/Library/Application Support/Unity/licenses"
-          sudo mkdir -p "/Library/Application Support/Unity/licenses"
-
-          # 1. Ham lisansı geçici dosyaya yaz
-          echo "$UNITY_LICENSE_CONTENT" > "$RUNNER_TEMP/temp_license.xml"
-
-          # 2. Python ile sanal Mac donanım kilitlerini eşleştir
-          python3 -c "
-          import sys, xml.etree.ElementTree as ET, subprocess, re, os
-
-          temp_path = os.path.join(os.environ['RUNNER_TEMP'], 'temp_license.xml')
-          final_path = os.path.join(os.environ['RUNNER_TEMP'], 'final_license.xml')
-
-          mac = subprocess.check_output(['ifconfig']).decode()
-          mac_match = re.search(r'ether ([0-9a-fA-F:]+)', mac)
-          mac_addr = mac_match.group(1).lower() if mac_match else '00:00:00:00:00:00'
-          machine_id = 'oWYgmIudQ0cUm9xKT9RertF4Kp8='
-
-          tree = ET.parse(temp_path)
-          root = tree.getroot()
-          for elem in root.iter('Identifier'):
-              t = elem.get('Type')
-              if t == 'Legacy.MachineBinding5':
-                  elem.set('Id', mac_addr)
-              elif t in ['Legacy.MachineBinding1', 'Legacy.MachineBinding2', 'Legacy.MachineBinding4']:
-                  elem.set('Id', machine_id)
-
-          tree.write(final_path, encoding='utf-8', xml_declaration=True)
-          "
-
-          # 3. Tüm sistem klasörlerine kopyala
-          cp "$RUNNER_TEMP/final_license.xml" "$HOME/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          cp "$RUNNER_TEMP/final_license.xml" "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
-          sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/licenses/UnityEntitlementLicense.xml"
-          sudo cp "$RUNNER_TEMP/final_license.xml" "/Library/Application Support/Unity/Unity_lic.ulf"
-
-      # 4. Unity projesinden Xcode projesi çıktısı al (Hardware Matched License)
+      # 3. Game-CI Unity Builder ile Linux üzerinde iOS Xcode çıktısı üret
       - name: Build Unity Project to Xcode
         uses: game-ci/unity-builder@v4
         env:
@@ -82,40 +41,68 @@ jobs:
           unityVersion: 6000.4.9f1
           buildMethod: iOSBuildScript.BuildForiOS
           customParameters: -customBuildPath build/iOS
-          skipActivation: true
 
-      # 5. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e yükle
+      # 4. Üretilen Xcode projesini macOS işine aktarmak için yükle
+      - name: Upload Xcode Project Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcode-build
+          path: build/iOS
+          retention-days: 1
+
+  deploy-testflight:
+    name: Build Xcode & Upload to TestFlight
+    needs: build-unity
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      # 1. Depoyu klonla
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Linux işinde üretilen Xcode projesini indir
+      - name: Download Xcode Project Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-xcode-build
+          path: build/iOS
+
+      # 3. Apple Dağıtım Sertifikasını (.p12) macOS Keychain'e aktar
       - name: Install Apple Certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASS }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # Geçici değişkenler
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Base64 sertifikayı dosyaya yaz
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          # Base64 sertifikayı p12 olarak yaz
+          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
 
           # Keychain oluştur ve kilitlerini aç
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychains -s $KEYCHAIN_PATH $(security list-keychains | tr -d '"')
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-key-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-      # 6. Provisioning Profile'ı macOS sistem klasörüne yükle
+          # Sertifikayı keychain içine aktar ve erişim izinlerini ver
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$P12_PASSWORD" -A -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -s "$KEYCHAIN_PATH" $(security list-keychains | tr -d '"')
+
+      # 4. Provisioning Profile'ı macOS sistem klasörüne yükle
       - name: Install Provisioning Profile
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
         run: |
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o PP_PATH
+          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PP_PATH"
 
-          # Provisioning profiles klasörünü oluştur ve dosyayı kopyala
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      # 7. ExportOptions.plist dosyası oluştur (xcodebuild için)
+      # 5. ExportOptions.plist dosyası oluştur (xcodebuild için)
       - name: Create exportOptions.plist
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -148,7 +135,7 @@ jobs:
           </plist>
           EOF
 
-      # 8. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
+      # 6. Xcode projesini derle (Archive) ve IPA dosyası oluştur (Export)
       - name: Build Xcode Project to IPA
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -175,7 +162,7 @@ jobs:
             -exportPath output \
             -allowProvisioningUpdates
 
-      # 9. Üretilen IPA dosyasını TestFlight'a yükle
+      # 7. Üretilen IPA dosyasını TestFlight'a yükle
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
