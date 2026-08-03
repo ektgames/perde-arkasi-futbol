@@ -8,18 +8,20 @@ jobs:
     name: Generate .alf file
     runs-on: ubuntu-latest
     steps:
+      # 1. Depoyu klonla
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate manual activation file
-        uses: game-ci/unity-builder@v4
-        with:
-          targetPlatform: iOS
-          unityVersion: 6000.4.9f1
-          customParameters: -createManualActivationFile
+      # 2. Docker içinde Unity 6 Editor çalıştırıp .alf dosyasını doğrudan oluştur
+      - name: Run Unity to create .alf file
+        run: |
+          docker run --rm -v "$(pwd):/project" -w /project unityci/editor:ubuntu-6000.4.9f1-base-3 unity-editor -batchmode -nographics -createManualActivationFile || true
+          echo "Oluşturulan ALF dosyaları:"
+          ls -la *.alf || true
 
+      # 3. Oluşan .alf aktivasyon dosyasını indirilebilir Artifact olarak yükle
       - name: Upload activation file as artifact
         uses: actions/upload-artifact@v4
         with:
           name: Unity_v6.alf
-          path: manual-activation-file.alf
+          path: "*.alf"
