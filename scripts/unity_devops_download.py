@@ -1,8 +1,11 @@
+print("SCRIPT VERSION: 2026-08-04 BUILD 3")
+
 import os
 import sys
 import time
 import json
 import urllib.request
+import urllib.parse
 import urllib.error
 import base64
 import zipfile
@@ -27,30 +30,44 @@ auth_headers = [
     f"Bearer {api_key}"
 ]
 
-# Redirect handler that strips Auth header for external cloud storage S3/GCS redirects
+working_auth_hdr = None
+
+# Redirect handler that strips Auth header for external cloud storage S3/GCS redirects or host changes
 class StripAuthRedirectHandler(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         new_req = super().redirect_request(req, fp, code, msg, headers, newurl)
-        if new_req and ("s3.amazonaws.com" in newurl or "storage.googleapis.com" in newurl or "cloudfront.net" in newurl):
-            if new_req.has_header("Authorization"):
-                new_req.remove_header("Authorization")
+        if new_req:
+            parsed_new = urllib.parse.urlparse(newurl)
+            parsed_req = urllib.parse.urlparse(req.full_url)
+            if parsed_new.netloc != parsed_req.netloc or any(domain in newurl.lower() for domain in ["s3", "amazonaws", "googleapis", "cloudfront", "storage"]):
+                if new_req.has_header("Authorization"):
+                    new_req.remove_header("Authorization")
+                if new_req.has_header("authorization"):
+                    new_req.remove_header("authorization")
         return new_req
 
 opener = urllib.request.build_opener(StripAuthRedirectHandler())
 
 def make_request(url, method="GET", data=None):
+    global working_auth_hdr
     last_err = None
-    for auth_hdr in auth_headers:
+    headers_to_try = ([working_auth_hdr] if working_auth_hdr else []) + [h for h in auth_headers if h != working_auth_hdr]
+
+    for auth_hdr in headers_to_try:
         req = urllib.request.Request(url, method=method)
         req.add_header("Authorization", auth_hdr)
-        req.add_header("Content-Type", "application/json")
         if data:
+            req.add_header("Content-Type", "application/json")
             req.data = json.dumps(data).encode("utf-8")
         try:
             with opener.open(req) as resp:
+                working_auth_hdr = auth_hdr
                 return json.loads(resp.read().decode("utf-8")), resp.status
         except urllib.error.HTTPError as e:
             last_err = e
+            if e.code == 429:
+                print(f"HTTP Error 429 Too Many Requests for URL {url}. Terminating immediately.")
+                sys.exit(1)
             if e.code == 401:
                 continue
             body = e.read().decode("utf-8", errors="ignore")
@@ -59,8 +76,119 @@ def make_request(url, method="GET", data=None):
     print("HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY.")
     raise last_err
 
+def parse_link_obj(obj):
+    if not obj:
+        return None, "GET"
+    if isinstance(obj, str):
+        return obj, "GET"
+    if isinstance(obj, dict):
+        href = obj.get("href") or obj.get("url") or obj.get("download_url")
+        method = obj.get("method", "GET").upper()
+        return href, method
+    return None, "GET"
+
+def find_in_artifacts_list(art_list, parse_link_obj_fn):
+    candidate_url = None
+    candidate_method = "GET"
+
+    for art in art_list:
+        if not isinstance(art, dict):
+            continue
+
+        files = art.get("files", [])
+        if isinstance(files, list):
+            for file_info in files:
+                if not isinstance(file_info, dict):
+                    continue
+                fn = file_info.get("filename", "") or file_info.get("name", "")
+                url, method = parse_link_obj_fn(file_info)
+                if not url and "download" in file_info:
+                    url, method = parse_link_obj_fn(file_info["download"])
+                if not url and "links" in file_info:
+                    url, method = parse_link_obj_fn(file_info.get("links", {}).get("download"))
+
+                if url:
+                    if fn.endswith(".ipa") or fn.endswith(".zip"):
+                        return url, method
+                    if not candidate_url:
+                        candidate_url, candidate_method = url, method
+
+        art_links = art.get("links", {}) if isinstance(art.get("links"), dict) else {}
+        if "download" in art_links:
+            url, method = parse_link_obj_fn(art_links["download"])
+            if url and not candidate_url:
+                candidate_url, candidate_method = url, method
+
+        if "download" in art:
+            url, method = parse_link_obj_fn(art["download"])
+            if url and not candidate_url:
+                candidate_url, candidate_method = url, method
+
+    return candidate_url, candidate_method
+
+def extract_download_info(b_info, artifacts_resp):
+    ipa_url = None
+    download_method = "GET"
+
+    links = b_info.get("links", {}) if isinstance(b_info, dict) else {}
+    for link_key in ["download", "download_primary", "artifacts"]:
+        if link_key in links:
+            url, method = parse_link_obj(links[link_key])
+            if url:
+                ipa_url, download_method = url, method
+                break
+
+    if not ipa_url and isinstance(b_info, dict):
+        b_artifacts = b_info.get("artifacts", [])
+        if isinstance(b_artifacts, list):
+            ipa_url, download_method = find_in_artifacts_list(b_artifacts, parse_link_obj)
+
+    if not ipa_url and artifacts_resp:
+        if isinstance(artifacts_resp, list):
+            ipa_url, download_method = find_in_artifacts_list(artifacts_resp, parse_link_obj)
+        elif isinstance(artifacts_resp, dict):
+            if "artifacts" in artifacts_resp and isinstance(artifacts_resp["artifacts"], list):
+                ipa_url, download_method = find_in_artifacts_list(artifacts_resp["artifacts"], parse_link_obj)
+            else:
+                ipa_url, download_method = find_in_artifacts_list([artifacts_resp], parse_link_obj)
+
+    if ipa_url and ipa_url.startswith("/"):
+        ipa_url = f"https://build-api.cloud.unity3d.com{ipa_url}"
+
+    return ipa_url, download_method
+
+def download_artifact(ipa_url, download_method, download_path):
+    parsed = urllib.parse.urlparse(ipa_url)
+    is_unity_api = "build-api.cloud.unity3d.com" in parsed.netloc or ipa_url.startswith("/")
+
+    if is_unity_api:
+        hdrs_to_try = ([working_auth_hdr] if working_auth_hdr else []) + [h for h in auth_headers if h != working_auth_hdr] + [None]
+    else:
+        hdrs_to_try = [None] + ([working_auth_hdr] if working_auth_hdr else []) + [h for h in auth_headers if h != working_auth_hdr]
+
+    for auth_hdr in hdrs_to_try:
+        req = urllib.request.Request(ipa_url, method=download_method)
+        if auth_hdr:
+            req.add_header("Authorization", auth_hdr)
+        try:
+            with opener.open(req) as resp, open(download_path, "wb") as out_file:
+                out_file.write(resp.read())
+            return True
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                print("HTTP Error 429 Too Many Requests during download. Terminating immediately.")
+                sys.exit(1)
+            print(f"Download attempt with auth '{auth_hdr[:15] if auth_hdr else 'None'}' failed: HTTP {e.code}")
+            continue
+        except Exception as e:
+            print(f"Download attempt failed: {e}")
+            continue
+
+    return False
+
 print(f"=== Checking existing Unity DevOps builds for target '{target_id}' ===")
 build_num = None
+existing_status = None
 
 try:
     builds, _ = make_request(f"{base_url}/builds?limit=10")
@@ -69,6 +197,7 @@ try:
             b_status = b.get("buildStatus")
             if b_status in ["queued", "started", "success"]:
                 build_num = b.get("build")
+                existing_status = b_status
                 print(f"Found existing build #{build_num} with status '{b_status}' for commit {commit_sha}")
                 break
 except Exception as e:
@@ -88,62 +217,69 @@ if not build_num:
         print(f"Failed to trigger build via API: {e}")
         sys.exit(1)
 
-print(f"=== Polling Unity DevOps build #{build_num} status ===")
-max_wait_minutes = 90
-poll_interval = 30
-elapsed = 0
-ipa_url = None
+if existing_status == "success":
+    print(f"Build #{build_num} status is already 'success'. Skipping polling loop.")
+    build_success = True
+else:
+    print(f"=== Polling Unity DevOps build #{build_num} status ===")
+    max_wait_minutes = 90
+    poll_interval = 30
+    elapsed = 0
+    build_success = False
 
-while elapsed < max_wait_minutes * 60:
-    try:
-        b_info, _ = make_request(f"{base_url}/builds/{build_num}")
-        status = b_info.get("buildStatus")
-        print(f"Build #{build_num} status: '{status}' ({elapsed // 60}m {elapsed % 60}s elapsed)")
+    while not build_success and elapsed < max_wait_minutes * 60:
+        try:
+            b_info, _ = make_request(f"{base_url}/builds/{build_num}")
+            status = b_info.get("buildStatus")
+            print(f"Build #{build_num} status: '{status}' ({elapsed // 60}m {elapsed % 60}s elapsed)")
 
-        if status == "success":
-            links = b_info.get("links", {})
-            if "download" in links:
-                ipa_url = links["download"].get("href")
+            if status == "success":
+                print(f"Build #{build_num} completed successfully! Exiting polling loop immediately.")
+                build_success = True
+                break
+            elif status in ["failure", "canceled"]:
+                print(f"ERROR: Unity DevOps build #{build_num} failed with status '{status}'.")
+                sys.exit(1)
+        except Exception as e:
+            print(f"Warning during polling: {e}")
 
-            if not ipa_url:
-                artifacts, _ = make_request(f"{base_url}/builds/{build_num}/artifacts")
-                for art in artifacts:
-                    for file_info in art.get("files", []):
-                        fn = file_info.get("filename", "")
-                        if fn.endswith(".ipa") or file_info.get("name", "").endswith(".ipa"):
-                            ipa_url = file_info.get("href")
-                            break
-                    if ipa_url:
-                        break
-            break
-        elif status in ["failure", "canceled"]:
-            print(f"ERROR: Unity DevOps build #{build_num} failed with status '{status}'.")
-            sys.exit(1)
-    except Exception as e:
-        print(f"Warning during polling: {e}")
+        time.sleep(poll_interval)
+        elapsed += poll_interval
 
-    time.sleep(poll_interval)
-    elapsed += poll_interval
+if not build_success:
+    print(f"ERROR: Timed out waiting for Unity DevOps build #{build_num} after {max_wait_minutes} minutes.")
+    sys.exit(1)
+
+print(f"=== Retrieving artifact info for build #{build_num} ===")
+
+b_info = None
+try:
+    b_info, _ = make_request(f"{base_url}/builds/{build_num}")
+    print(f"DEBUG: Complete JSON returned by GET /builds/{build_num}:\n{json.dumps(b_info, indent=2)}")
+except Exception as e:
+    print(f"ERROR fetching GET /builds/{build_num}: {e}")
+    sys.exit(1)
+
+artifacts = None
+try:
+    artifacts, _ = make_request(f"{base_url}/builds/{build_num}/artifacts")
+    print(f"DEBUG: Complete JSON returned by GET /builds/{build_num}/artifacts:\n{json.dumps(artifacts, indent=2)}")
+except Exception as e:
+    print(f"ERROR fetching GET /builds/{build_num}/artifacts: {e}")
+    sys.exit(1)
+
+ipa_url, download_method = extract_download_info(b_info or {}, artifacts)
 
 if not ipa_url:
     print("ERROR: Could not retrieve IPA download URL from completed Unity DevOps build.")
     sys.exit(1)
 
+print(f"Resolved Artifact Download URL: {ipa_url} (Method: {download_method})")
+
 print("=== Downloading build artifact ===")
 download_path = "build_download.tmp"
-download_success = False
 
-for auth_hdr in auth_headers + [None]:
-    req = urllib.request.Request(ipa_url)
-    if auth_hdr:
-        req.add_header("Authorization", auth_hdr)
-    try:
-        with opener.open(req) as resp, open(download_path, "wb") as out_file:
-            out_file.write(resp.read())
-        download_success = True
-        break
-    except urllib.error.HTTPError:
-        continue
+download_success = download_artifact(ipa_url, download_method, download_path)
 
 if not download_success:
     print("ERROR: Failed to download artifact from Unity DevOps.")
@@ -165,3 +301,6 @@ else:
     os.rename(download_path, "Unity-iPhone.ipa")
 
 print("Download and extraction complete: 'Unity-iPhone.ipa'")
+
+
+
