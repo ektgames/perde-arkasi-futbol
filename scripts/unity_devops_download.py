@@ -1,15 +1,16 @@
 import sys
 import os
 import time
-
-print("SCRIPT VERSION: 2026-08-04 BUILD 3", flush=True)
-sys.stdout.flush()
+import socket
 import json
 import urllib.request
 import urllib.parse
 import urllib.error
 import base64
 import zipfile
+
+print("SCRIPT VERSION: 2026-08-04 BUILD 3", flush=True)
+sys.stdout.flush()
 
 api_key = os.environ.get("UNITY_DEVOPS_API_KEY", "").strip()
 org_id = os.environ.get("UNITY_ORG_ID", "").strip()
@@ -51,6 +52,7 @@ opener = urllib.request.build_opener(StripAuthRedirectHandler())
 
 def make_request(url, method="GET", data=None):
     global working_auth_hdr
+    print(f"Calling {method} {url}", flush=True)
     last_err = None
     headers_to_try = ([working_auth_hdr] if working_auth_hdr else []) + [h for h in auth_headers if h != working_auth_hdr]
 
@@ -61,20 +63,31 @@ def make_request(url, method="GET", data=None):
             req.add_header("Content-Type", "application/json")
             req.data = json.dumps(data).encode("utf-8")
         try:
-            with opener.open(req) as resp:
+            print(f"[HTTP] {method} {url}", flush=True)
+            with opener.open(req, timeout=30) as resp:
+                print(f"[HTTP OK] {resp.status}", flush=True)
                 working_auth_hdr = auth_hdr
                 return json.loads(resp.read().decode("utf-8")), resp.status
+        except (socket.timeout, urllib.error.URLError) as e:
+            if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
+                print(f"HTTP TIMEOUT for {url}", flush=True)
+                sys.exit(1)
+            if isinstance(e, urllib.error.HTTPError):
+                pass
+            else:
+                print(f"HTTP Error/URLError: {e}", flush=True)
+                raise e
         except urllib.error.HTTPError as e:
             last_err = e
             if e.code == 429:
-                print(f"HTTP Error 429 Too Many Requests for URL {url}. Terminating immediately.")
+                print(f"HTTP Error 429 Too Many Requests for URL {url}. Terminating immediately.", flush=True)
                 sys.exit(1)
             if e.code == 401:
                 continue
             body = e.read().decode("utf-8", errors="ignore")
-            print(f"HTTP Error {e.code}: {body}")
+            print(f"HTTP Error {e.code}: {body}", flush=True)
             raise e
-    print("HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY.")
+    print("HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY.", flush=True)
     raise last_err
 
 def parse_link_obj(obj):
@@ -172,17 +185,25 @@ def download_artifact(ipa_url, download_method, download_path):
         if auth_hdr:
             req.add_header("Authorization", auth_hdr)
         try:
-            with opener.open(req) as resp, open(download_path, "wb") as out_file:
+            print(f"[HTTP] {download_method} {ipa_url}", flush=True)
+            with opener.open(req, timeout=30) as resp, open(download_path, "wb") as out_file:
+                print(f"[HTTP OK] {resp.status}", flush=True)
                 out_file.write(resp.read())
             return True
+        except (socket.timeout, urllib.error.URLError) as e:
+            if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
+                print(f"HTTP TIMEOUT for {ipa_url}", flush=True)
+                sys.exit(1)
+            print(f"Download attempt failed with URLError: {e}", flush=True)
+            continue
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                print("HTTP Error 429 Too Many Requests during download. Terminating immediately.")
+                print("HTTP Error 429 Too Many Requests during download. Terminating immediately.", flush=True)
                 sys.exit(1)
-            print(f"Download attempt with auth '{auth_hdr[:15] if auth_hdr else 'None'}' failed: HTTP {e.code}")
+            print(f"Download attempt with auth '{auth_hdr[:15] if auth_hdr else 'None'}' failed: HTTP {e.code}", flush=True)
             continue
         except Exception as e:
-            print(f"Download attempt failed: {e}")
+            print(f"Download attempt failed: {e}", flush=True)
             continue
 
     return False
