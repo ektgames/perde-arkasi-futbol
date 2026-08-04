@@ -59,9 +59,15 @@ def make_request(url, method="GET", data=None):
     for auth_hdr in headers_to_try:
         req = urllib.request.Request(url, method=method)
         req.add_header("Authorization", auth_hdr)
+        req.add_header("Accept", "application/json")
         if data:
             req.add_header("Content-Type", "application/json")
             req.data = json.dumps(data).encode("utf-8")
+
+        auth_display = f"{auth_hdr[:15]}..." if len(auth_hdr) > 15 else auth_hdr
+        accept_display = req.get_header("Accept") or "application/json"
+        print(f"DEBUG Request: {method} {url} | Authorization: {auth_display} | Accept: {accept_display}", flush=True)
+
         try:
             print(f"[HTTP] {method} {url}", flush=True)
             with opener.open(req, timeout=30) as resp:
@@ -76,7 +82,7 @@ def make_request(url, method="GET", data=None):
                 pass
             else:
                 print(f"HTTP Error/URLError: {e}", flush=True)
-                raise e
+                raise RuntimeError(f"URL request failed for {url}: {e}") from e
         except urllib.error.HTTPError as e:
             last_err = e
             if e.code == 429:
@@ -86,9 +92,12 @@ def make_request(url, method="GET", data=None):
                 continue
             body = e.read().decode("utf-8", errors="ignore")
             print(f"HTTP Error {e.code}: {body}", flush=True)
-            raise e
-    print("HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY.", flush=True)
-    raise last_err
+            raise RuntimeError(f"HTTP Error {e.code} for {url}: {body}") from e
+
+    if last_err is not None:
+        raise RuntimeError(f"HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY. Last error: {last_err}") from last_err
+    else:
+        raise RuntimeError("HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY.")
 
 def parse_link_obj(obj):
     if not obj:
@@ -184,6 +193,12 @@ def download_artifact(ipa_url, download_method, download_path):
         req = urllib.request.Request(ipa_url, method=download_method)
         if auth_hdr:
             req.add_header("Authorization", auth_hdr)
+        req.add_header("Accept", "*/*")
+
+        auth_display = f"{auth_hdr[:15]}..." if auth_hdr and len(auth_hdr) > 15 else (auth_hdr or "None")
+        accept_display = req.get_header("Accept") or "*/*"
+        print(f"DEBUG Request: {download_method} {ipa_url} | Authorization: {auth_display} | Accept: {accept_display}", flush=True)
+
         try:
             print(f"[HTTP] {download_method} {ipa_url}", flush=True)
             with opener.open(req, timeout=30) as resp, open(download_path, "wb") as out_file:
