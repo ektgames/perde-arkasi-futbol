@@ -240,33 +240,97 @@ def download_artifact(ipa_url, download_method, download_path):
 print(f"=== Checking existing Unity DevOps builds for target '{target_id}' ===")
 build_num = None
 existing_status = None
+builds = []
+active_statuses = ["created", "queued", "sentToBuilder", "building", "started"]
 
 try:
-    builds, _ = make_request(f"{base_url}/builds?limit=10")
+    builds_resp, _ = make_request(f"{base_url}/builds?limit=10")
+    if isinstance(builds_resp, list):
+        builds = builds_resp
+    elif isinstance(builds_resp, dict) and "builds" in builds_resp:
+        builds = builds_resp["builds"]
+
     for b in builds:
+        if not isinstance(b, dict):
+            continue
         if b.get("lastBuiltRevision") == commit_sha or b.get("commit") == commit_sha:
             b_status = b.get("buildStatus")
-            if b_status in ["queued", "started", "success"]:
+            if b_status in active_statuses + ["success"]:
                 build_num = b.get("build")
                 existing_status = b_status
-                print(f"Found existing build #{build_num} with status '{b_status}' for commit {commit_sha}")
+                print(f"Found existing build #{build_num} with status '{b_status}' for commit {commit_sha}", flush=True)
                 break
 except Exception as e:
-    print(f"Notice querying builds: {e}")
+    print(f"Notice querying builds: {e}", flush=True)
 
 if not build_num:
-    print(f"Triggering new Unity DevOps build for target '{target_id}' on commit {commit_sha}...")
+    print(f"Triggering new Unity DevOps build for target '{target_id}' on commit {commit_sha}...", flush=True)
     trigger_data = {"clean": False, "commit": commit_sha, "label": f"GitHub Actions {commit_sha[:7]}"}
     try:
         resp, _ = make_request(f"{base_url}/builds", method="POST", data=trigger_data)
+
+        pending_error_found = False
+        extracted_build_num = None
+
         if isinstance(resp, list) and len(resp) > 0:
-            build_num = resp[0].get("build")
+            first_item = resp[0]
+            if isinstance(first_item, dict):
+                err_msg = str(first_item.get("error", ""))
+                if "already a build pending" in err_msg or "Cannot start build" in err_msg:
+                    pending_error_found = True
+                    print(f"Notice from POST /builds: {err_msg}", flush=True)
+                else:
+                    extracted_build_num = first_item.get("build")
         elif isinstance(resp, dict):
-            build_num = resp.get("build")
-        print(f"Build #{build_num} successfully queued on Unity DevOps!")
+            err_msg = str(resp.get("error", ""))
+            if "already a build pending" in err_msg or "Cannot start build" in err_msg:
+                pending_error_found = True
+                print(f"Notice from POST /builds: {err_msg}", flush=True)
+            else:
+                extracted_build_num = resp.get("build")
+
+        if not pending_error_found and extracted_build_num is not None:
+            build_num = extracted_build_num
+            print(f"Build #{build_num} successfully queued on Unity DevOps!", flush=True)
+        else:
+            print("POST /builds returned pending error or invalid build number. Searching for active pending build in /builds...", flush=True)
+            for b in builds:
+                if isinstance(b, dict):
+                    b_status = b.get("buildStatus")
+                    if b_status in active_statuses and b.get("build") is not None:
+                        build_num = b.get("build")
+                        existing_status = b_status
+                        print(f"Found active pending build #{build_num} with status '{b_status}' in existing builds list.", flush=True)
+                        break
+
+            if not build_num:
+                try:
+                    latest_builds, _ = make_request(f"{base_url}/builds?limit=10")
+                    if isinstance(latest_builds, list):
+                        for b in latest_builds:
+                            if isinstance(b, dict):
+                                b_status = b.get("buildStatus")
+                                if b_status in active_statuses and b.get("build") is not None:
+                                    build_num = b.get("build")
+                                    existing_status = b_status
+                                    print(f"Found active pending build #{build_num} with status '{b_status}' on re-query.", flush=True)
+                                    break
+                except Exception as e:
+                    print(f"Notice re-querying builds: {e}", flush=True)
+
     except Exception as e:
-        print(f"Failed to trigger build via API: {e}")
-        sys.exit(1)
+        print(f"Notice/Exception triggering build via API: {e}", flush=True)
+        for b in builds:
+            if isinstance(b, dict):
+                b_status = b.get("buildStatus")
+                if b_status in active_statuses and b.get("build") is not None:
+                    build_num = b.get("build")
+                    existing_status = b_status
+                    print(f"Found active pending build #{build_num} with status '{b_status}' after trigger exception.", flush=True)
+                    break
+
+if not build_num or str(build_num).strip().lower() == "none":
+    raise RuntimeError("Cannot start build - already a build pending or invalid build_num (None). No active build (created/queued/sentToBuilder/building/started) found in /builds.")
 
 if existing_status == "success":
     print(f"Build #{build_num} status is already 'success'. Skipping polling loop.")
