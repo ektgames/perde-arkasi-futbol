@@ -71,9 +71,17 @@ def make_request(url, method="GET", data=None):
         try:
             print(f"[HTTP] {method} {url}", flush=True)
             with opener.open(req, timeout=30) as resp:
-                print(f"[HTTP OK] {resp.status}", flush=True)
+                status_code = resp.status
+                resp_headers = resp.headers
+                body_bytes = resp.read()
+                body_text = body_bytes.decode("utf-8", errors="ignore")
+
+                print(f"[HTTP RESPONSE STATUS] {status_code}", flush=True)
+                print(f"[HTTP RESPONSE HEADERS]\n{resp_headers}", flush=True)
+                print(f"[HTTP RESPONSE BODY]\n{body_text}", flush=True)
+
                 working_auth_hdr = auth_hdr
-                return json.loads(resp.read().decode("utf-8")), resp.status
+                return json.loads(body_text), status_code
         except (socket.timeout, urllib.error.URLError) as e:
             if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
                 print(f"HTTP TIMEOUT for {url}", flush=True)
@@ -85,14 +93,20 @@ def make_request(url, method="GET", data=None):
                 raise RuntimeError(f"URL request failed for {url}: {e}") from e
         except urllib.error.HTTPError as e:
             last_err = e
+            status_code = e.code
+            err_headers = e.headers if hasattr(e, "headers") else {}
+            body_text = e.read().decode("utf-8", errors="ignore")
+
+            print(f"[HTTP ERROR STATUS] {status_code}", flush=True)
+            print(f"[HTTP ERROR HEADERS]\n{err_headers}", flush=True)
+            print(f"[HTTP ERROR BODY]\n{body_text}", flush=True)
+
             if e.code == 429:
                 print(f"HTTP Error 429 Too Many Requests for URL {url}. Terminating immediately.", flush=True)
                 sys.exit(1)
             if e.code == 401:
                 continue
-            body = e.read().decode("utf-8", errors="ignore")
-            print(f"HTTP Error {e.code}: {body}", flush=True)
-            raise RuntimeError(f"HTTP Error {e.code} for {url}: {body}") from e
+            raise RuntimeError(f"HTTP Error {e.code} for {url}:\n{body_text}") from e
 
     if last_err is not None:
         raise RuntimeError(f"HTTP Authentication Error: Could not authenticate with provided UNITY_DEVOPS_API_KEY. Last error: {last_err}") from last_err
