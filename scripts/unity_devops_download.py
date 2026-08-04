@@ -1,8 +1,9 @@
-print("SCRIPT VERSION: 2026-08-04 BUILD 3")
-
-import os
 import sys
+import os
 import time
+
+print("SCRIPT VERSION: 2026-08-04 BUILD 3", flush=True)
+sys.stdout.flush()
 import json
 import urllib.request
 import urllib.parse
