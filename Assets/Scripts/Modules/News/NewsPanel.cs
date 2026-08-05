@@ -16,7 +16,7 @@ namespace BehindTheScenesFootball.UI
 
             // Create a Scroll View inside this container
             GameObject scrollView = uiManager.CreateScrollViewHelper(panelContainer.transform, "MailsScroll", out listContent);
-            SetRectTransform(scrollView, new Vector2(0f, 0f), new Vector2(1f, 0.88f), Vector2.zero, Vector2.zero);
+            SetRectTransform(scrollView, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.82f), Vector2.zero, Vector2.zero);
         }
 
         public override void Refresh()
@@ -31,7 +31,7 @@ namespace BehindTheScenesFootball.UI
             if (vlg != null)
             {
                 vlg.spacing = 25f;
-                vlg.padding = new RectOffset(20, 20, 20, 20);
+                vlg.padding = new RectOffset(20, 20, 30, 30);
                 vlg.childAlignment = TextAnchor.UpperLeft;
                 vlg.childControlWidth = true;
                 vlg.childControlHeight = false;
