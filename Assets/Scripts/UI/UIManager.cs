@@ -2031,6 +2031,15 @@ namespace BehindTheScenesFootball.UI
                 }
             }
 
+            string transferStatusStr = !string.IsNullOrEmpty(p.TransferStatusNote) 
+                ? p.TransferStatusNote 
+                : (p.IsTransferListed ? "Transfer Listesinde (Ayrılmak İstiyor)" : null);
+
+            if (!string.IsNullOrEmpty(transferStatusStr))
+            {
+                CreateDetailLabel(cardObj.transform, "LblTransferStatus", $"Transfer Durumu: <color=#F39C12><b>{transferStatusStr}</b></color>", new Vector2(0.08f, 0.232f), new Vector2(0.92f, 0.277f));
+            }
+
             // Traits & Sponsor Area
             CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.220f), new Vector2(0.48f, 0.265f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
             CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.220f), new Vector2(0.92f, 0.265f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
@@ -2542,6 +2551,67 @@ namespace BehindTheScenesFootball.UI
                 if (onComplete != null) onComplete();
             });
             SetRectTransform(btnSubmit.transform.parent, new Vector2(0.1f, 0.05f), new Vector2(0.9f, 0.95f), Vector2.zero, Vector2.zero);
+        }
+
+        public void ShowClubKeepOfferPopup(Player p, System.Action onComplete)
+        {
+            if (p == null || p.CurrentContract == null)
+            {
+                if (onComplete != null) onComplete();
+                return;
+            }
+
+            Club currentClub = DatabaseManager.Instance.GetClubById(p.CurrentContract.ClubId);
+            string clubName = currentClub != null ? currentClub.Name : p.CurrentContract.ClubName;
+
+            var (content, overlay, cardObj) = CreateScrollableNegotiationCard(mainCanvas.transform, p, $"{clubName} - Kulüp Görüşmesi & Teklifi", null);
+
+            // Message box
+            GameObject msgPanel = CreatePanelHelper(content, "MsgPanel", new Color(0f, 0f, 0f, 0.25f));
+            LayoutElement msgLe = msgPanel.AddComponent<LayoutElement>();
+            msgLe.preferredHeight = 360f;
+
+            string textStr = $"<color=#F1C40F><b>{clubName} Başkanı:</b></color>\n\n'{p.Name} kadromuzun en değerli isimlerinden biridir ve onu kaybetmek istemiyoruz!\n\n" +
+                             $"Takımdan ayrılmak yerine maaşına zam yaparak kulübümüzde kalmasını teklif ediyoruz. Zam görüşmelerine başlamak ister misiniz?'";
+
+            Text msgTxt = CreateText(msgPanel.transform, "MsgTxt", textStr, 44, Color.white, TextAnchor.MiddleCenter);
+            SetRectTransform(msgTxt, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
+            var msgScaler = msgTxt.GetComponent<TextScaler>();
+            if (msgScaler != null) Destroy(msgScaler);
+            msgTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            msgTxt.verticalOverflow = VerticalWrapMode.Overflow;
+
+            // Buttons Container
+            GameObject btnContainer = new GameObject("BtnContainer", typeof(RectTransform));
+            btnContainer.transform.SetParent(content, false);
+            LayoutElement btnLe = btnContainer.AddComponent<LayoutElement>();
+            btnLe.preferredHeight = 140f;
+
+            // Yes (Zam Yap) Button
+            Text btnYes = CreateButtonHelper(btnContainer.transform, "BtnYesNego", "EVET (ZAM YAP)", colorGreen, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
+                Destroy(overlay);
+                ShowClubWageRenegotiation(p, () => {
+                    p.IsTransferListed = false;
+                    p.TransferStatusNote = "Kulüpte Kalıyor (Zam Yapıldı)";
+                    if (onComplete != null) onComplete();
+                });
+            });
+            SetRectTransform(btnYes.transform.parent, new Vector2(0.02f, 0.05f), new Vector2(0.48f, 0.95f), Vector2.zero, Vector2.zero);
+            btnYes.fontSize = 42;
+            btnYes.fontStyle = FontStyle.Bold;
+
+            // No (Transfer Listesine Koy) Button
+            Text btnNo = CreateButtonHelper(btnContainer.transform, "BtnNoTransfer", "REDDET (TRANSFER ET)", colorRed, Color.white, () => {
+                p.IsTransferListed = true;
+                p.IsSuggestedForLoan = true;
+                p.TransferStatusNote = "Transfer Listesinde (Ayrılmak İstiyor)";
+                AgencyManager.Instance.LogActivity($"TRANSFER TALEBİ: {p.Name} kulübün zam teklifini reddetti ve transfer listesine konuldu.");
+                Destroy(overlay);
+                if (onComplete != null) onComplete();
+            });
+            SetRectTransform(btnNo.transform.parent, new Vector2(0.52f, 0.05f), new Vector2(0.98f, 0.95f), Vector2.zero, Vector2.zero);
+            btnNo.fontSize = 42;
+            btnNo.fontStyle = FontStyle.Bold;
         }
 
         public void ShowSignNegotiation(Player p, System.Action onSignSuccess)

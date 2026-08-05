@@ -27,6 +27,23 @@ namespace BehindTheScenesFootball.UI
                 Destroy(child.gameObject);
             }
 
+            VerticalLayoutGroup vlg = listContent.gameObject.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null)
+            {
+                vlg.spacing = 25f;
+                vlg.padding = new RectOffset(20, 20, 20, 20);
+                vlg.childAlignment = TextAnchor.UpperLeft;
+                vlg.childControlWidth = true;
+                vlg.childControlHeight = false;
+                vlg.childForceExpandWidth = true;
+                vlg.childForceExpandHeight = false;
+            }
+
+            ContentSizeFitter csf = listContent.gameObject.GetComponent<ContentSizeFitter>();
+            if (csf == null) csf = listContent.gameObject.AddComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
             var offers = SimulationEngine.Instance.ActiveOffers;
             var mails = SimulationEngine.Instance.ActiveMails;
             
@@ -68,6 +85,18 @@ namespace BehindTheScenesFootball.UI
             border.effectColor = uiManager.ColorAccent;
             border.effectDistance = new Vector2(3f, 3f);
 
+            VerticalLayoutGroup layoutGroup = row.AddComponent<VerticalLayoutGroup>();
+            layoutGroup.padding = new RectOffset(30, 30, 30, 30);
+            layoutGroup.spacing = 20;
+            layoutGroup.childAlignment = TextAnchor.UpperLeft;
+            layoutGroup.childControlHeight = true;
+            layoutGroup.childControlWidth = true;
+            layoutGroup.childForceExpandHeight = false;
+            layoutGroup.childForceExpandWidth = true;
+
+            LayoutElement rowLe = row.AddComponent<LayoutElement>();
+            rowLe.minHeight = 280f;
+
             // Body
             string bodyText;
             if (offer.IsLoanOffer)
@@ -88,10 +117,6 @@ namespace BehindTheScenesFootball.UI
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
             body.verticalOverflow = VerticalWrapMode.Overflow;
             body.resizeTextForBestFit = false;
-            
-            ContentSizeFitter bodyFitter = body.gameObject.AddComponent<ContentSizeFitter>();
-            bodyFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            bodyFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             // Buttons Container
             GameObject buttonsContainer = uiManager.CreatePanelHelper(row.transform, "ButtonsContainer", Color.clear);
@@ -150,9 +175,8 @@ namespace BehindTheScenesFootball.UI
             layoutGroup.childForceExpandHeight = false;
             layoutGroup.childForceExpandWidth = true;
 
-            ContentSizeFitter rowFitter = row.AddComponent<ContentSizeFitter>();
-            rowFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            rowFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            LayoutElement rowLe = row.AddComponent<LayoutElement>();
+            rowLe.minHeight = 280f;
 
             if (p != null)
             {
@@ -307,8 +331,31 @@ namespace BehindTheScenesFootball.UI
                                 break;
 
                             case "Transfer":
-                                p.IsSuggestedForLoan = true;
-                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} transfer listesine önerildi ve gelen teklifler açıldı. (Moral: +{mail.HappinessEffect})");
+                                if (p != null && p.CurrentContract != null)
+                                {
+                                    bool isKeyPlayer = p.OVR >= 68 || p.Form >= 55f;
+                                    if (isKeyPlayer)
+                                    {
+                                        uiManager.ShowClubKeepOfferPopup(p, () => Refresh());
+                                    }
+                                    else
+                                    {
+                                        p.IsTransferListed = true;
+                                        p.IsSuggestedForLoan = true;
+                                        p.TransferStatusNote = "Transfer Listesinde (Ayrılmak İstiyor)";
+                                        AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} kulübü tarafından transfer listesine konuldu. (Moral: +{mail.HappinessEffect})");
+                                    }
+                                }
+                                else
+                                {
+                                    if (p != null)
+                                    {
+                                        p.IsTransferListed = true;
+                                        p.IsSuggestedForLoan = true;
+                                        p.TransferStatusNote = "Transfer Listesinde (Ayrılmak İstiyor)";
+                                    }
+                                    AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} transfer listesine önerildi.");
+                                }
                                 break;
 
                             case "Physio":

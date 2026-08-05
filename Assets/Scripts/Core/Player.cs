@@ -71,6 +71,11 @@ namespace BehindTheScenesFootball.Core
         public string PositiveTrait = "";
         public string NegativeTrait = "";
         
+        public int RequestsThisSeasonCount = 0;
+        public int LastRequestGlobalWeek = -999;
+        public bool IsTransferListed = false;
+        public string TransferStatusNote = "";
+        
         // Career Stats
         public int Goals;
         public int Assists;

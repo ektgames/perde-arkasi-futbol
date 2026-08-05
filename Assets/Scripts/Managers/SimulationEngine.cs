@@ -133,6 +133,10 @@ namespace BehindTheScenesFootball.Managers
             {
                 CurrentWeek = 1;
                 CurrentYear++;
+                foreach (var player in DatabaseManager.Instance.Players)
+                {
+                    player.RequestsThisSeasonCount = 0;
+                }
                 EndSeasonAll();
             }
 
@@ -1372,13 +1376,25 @@ namespace BehindTheScenesFootball.Managers
             var agency = AgencyManager.Instance != null ? AgencyManager.Instance.ActiveAgency : null;
             if (agency == null || agency.Clients == null || agency.Clients.Count == 0) return;
 
-            // 35% chance per week for a client to send a dialogue request if no pending requests exist
-            if (UnityEngine.Random.value > 0.35f) return;
+            int currentGlobalWeek = CurrentYear * 52 + CurrentWeek;
 
-            List<Player> eligibleClients = agency.Clients.FindAll(c => c != null && !ActiveMails.Exists(m => m.PlayerId == c.Id && m.IsRequest));
+            // Throttling: Each player max 3 requests per season, spaced at least 12 weeks apart
+            List<Player> eligibleClients = agency.Clients.FindAll(c => 
+                c != null && 
+                c.RequestsThisSeasonCount < 3 &&
+                (c.LastRequestGlobalWeek == -999 || (currentGlobalWeek - c.LastRequestGlobalWeek) >= 12) &&
+                !ActiveMails.Exists(m => m.PlayerId == c.Id && m.IsRequest)
+            );
             if (eligibleClients.Count == 0) return;
 
+            // 25% chance per week for an eligible client to send a dialogue request
+            if (UnityEngine.Random.value > 0.25f) return;
+
             Player client = eligibleClients[UnityEngine.Random.Range(0, eligibleClients.Count)];
+
+            // Record request
+            client.RequestsThisSeasonCount++;
+            client.LastRequestGlobalWeek = currentGlobalWeek;
 
             // 10 Distinct Dialogue Scenarios
             int scenarioIndex = UnityEngine.Random.Range(0, 10);
