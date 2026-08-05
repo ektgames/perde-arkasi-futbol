@@ -219,6 +219,9 @@ namespace BehindTheScenesFootball.Managers
                 }
             }
  
+            // 5. Generate Weekly Client Dialogue Requests (10 Scenarios)
+            GenerateWeeklyClientDialogueRequests();
+            
             // 4.7. Unhappy Clients Crisis Mail Check
             foreach (var client in AgencyManager.Instance.ActiveAgency.Clients)
             {

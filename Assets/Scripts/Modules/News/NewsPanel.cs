@@ -282,20 +282,65 @@ namespace BehindTheScenesFootball.UI
                     if (p != null)
                     {
                         p.Happiness = Mathf.Clamp(p.Happiness + mail.HappinessEffect, 10f, 100f);
-                        if (mail.RequestType == "Coach")
+                        
+                        switch (mail.RequestType)
                         {
-                            p.OVR = Mathf.Min(99, p.OVR + 1);
-                            p.UpdateMarketValue();
-                            AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için özel antrenör tuttunuz. (Bütçe: -€{mail.MoneyCost:N0}, GEN: +1, Moral: +{mail.HappinessEffect})");
-                        }
-                        else if (mail.RequestType == "PR")
-                        {
-                            p.MarketValue = Mathf.RoundToInt(p.MarketValue * 1.02f);
-                            AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için PR kampanyası başlattınız. (Bütçe: -€{mail.MoneyCost:N0}, Piyasa Değeri: +%2, Moral: +{mail.HappinessEffect})");
-                        }
-                        else
-                        {
-                            AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} adlı oyuncunun talebi yerine getirildi. (Bütçe: -€{mail.MoneyCost:N0}, Moral: +{mail.HappinessEffect})");
+                            case "Coach":
+                                p.OVR = Mathf.Min(99, p.OVR + 1);
+                                p.UpdateMarketValue();
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için özel antrenör tuttunuz. (Bütçe: -€{mail.MoneyCost:N0}, GEN: +1, Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "PR":
+                                p.MarketValue = Mathf.RoundToInt(p.MarketValue * 1.03f);
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için PR kampanyası başlattınız. (Bütçe: -€{mail.MoneyCost:N0}, Piyasa Değeri: +%3, Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "Wage":
+                                uiManager.ShowSignNegotiation(p, () => Refresh());
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} ile sözleşme yenileme masasına oturuluyor.");
+                                break;
+
+                            case "Leadership":
+                                p.SquadRole = "Kaptan / Lider";
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} takım içi lider olarak desteklendi. (Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "Transfer":
+                                p.IsSuggestedForLoan = true;
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} transfer listesine önerildi ve gelen teklifler açıldı. (Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "Physio":
+                                p.Form = Mathf.Min(100f, p.Form + 15f);
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için fizyoterapist tutuldu. (Form: +15, Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "Sponsor":
+                                Sponsor mockSp = new Sponsor("Red Bull", 3500, 3, 80);
+                                if (p.PendingSponsorOffers == null) p.PendingSponsorOffers = new List<Sponsor>();
+                                p.PendingSponsorOffers.Add(mockSp);
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için yeni sponsorluk fırsatı bulundu! (Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "Mental":
+                                p.Form = Mathf.Min(100f, p.Form + 10f);
+                                p.Happiness = Mathf.Min(100f, p.Happiness + 10f);
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} zihinsel koçluk seansı aldı. (Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "Camp":
+                                p.POT = Mathf.Min(99, p.POT + 1);
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} gelişim kampına gönderildi. (Potansiyel: +1, Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            case "MediaSupport":
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için medyaya destek açıklaması yapıldı. (Moral: +{mail.HappinessEffect})");
+                                break;
+
+                            default:
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} adlı oyuncunun talebi yerine getirildi. (Moral: +{mail.HappinessEffect})");
+                                break;
                         }
                     }
 
