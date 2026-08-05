@@ -4193,11 +4193,29 @@ namespace BehindTheScenesFootball.UI
 
             var agency = AgencyManager.Instance.ActiveAgency;
             
-            // Sync client IDs
+            // Sync client IDs and detailed client save data
             agency.ClientPlayerIds.Clear();
+            agency.SavedClients.Clear();
             foreach (var client in agency.Clients)
             {
-                agency.ClientPlayerIds.Add(client.Id);
+                if (client != null)
+                {
+                    if (!string.IsNullOrEmpty(client.Id))
+                    {
+                        agency.ClientPlayerIds.Add(client.Id);
+                    }
+
+                    ClientSaveData csd = new ClientSaveData
+                    {
+                        PlayerId = client.Id,
+                        PlayerName = client.Name,
+                        CustomTransferCommissionPercent = client.CustomTransferCommissionPercent,
+                        CustomWageCommissionPercent = client.CustomWageCommissionPercent,
+                        CustomSponsorCommissionPercent = client.CustomSponsorCommissionPercent,
+                        AgencyContractRemainingWeeks = client.AgencyContractRemainingWeeks
+                    };
+                    agency.SavedClients.Add(csd);
+                }
             }
 
             GameSaveData saveData = new GameSaveData();
@@ -4242,12 +4260,40 @@ namespace BehindTheScenesFootball.UI
 
             // Restore Clients
             loadedAgency.Clients.Clear();
-            foreach (var id in loadedAgency.ClientPlayerIds)
+            if (loadedAgency.SavedClients != null && loadedAgency.SavedClients.Count > 0)
             {
-                Player p = DatabaseManager.Instance.Players.Find(x => x.Id == id);
-                if (p != null)
+                foreach (var csd in loadedAgency.SavedClients)
                 {
-                    loadedAgency.AddClient(p);
+                    if (csd == null) continue;
+                    Player p = DatabaseManager.Instance.Players.Find(x => x.Id == csd.PlayerId);
+                    if (p == null && !string.IsNullOrEmpty(csd.PlayerName))
+                    {
+                        p = DatabaseManager.Instance.Players.Find(x => x.Name.Equals(csd.PlayerName, System.StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (p != null)
+                    {
+                        p.CustomTransferCommissionPercent = csd.CustomTransferCommissionPercent;
+                        p.CustomWageCommissionPercent = csd.CustomWageCommissionPercent;
+                        p.CustomSponsorCommissionPercent = csd.CustomSponsorCommissionPercent;
+                        p.AgencyContractRemainingWeeks = csd.AgencyContractRemainingWeeks;
+                        loadedAgency.AddClient(p);
+                    }
+                }
+            }
+            else if (loadedAgency.ClientPlayerIds != null)
+            {
+                foreach (var id in loadedAgency.ClientPlayerIds)
+                {
+                    if (string.IsNullOrEmpty(id)) continue;
+                    Player p = DatabaseManager.Instance.Players.Find(x => x.Id == id);
+                    if (p == null)
+                    {
+                        p = DatabaseManager.Instance.Players.Find(x => x.Name.Equals(id, System.StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (p != null)
+                    {
+                        loadedAgency.AddClient(p);
+                    }
                 }
             }
 

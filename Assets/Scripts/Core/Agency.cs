@@ -4,6 +4,17 @@ using UnityEngine;
 namespace BehindTheScenesFootball.Core
 {
     [System.Serializable]
+    public class ClientSaveData
+    {
+        public string PlayerId;
+        public string PlayerName;
+        public float CustomTransferCommissionPercent = 0.10f;
+        public float CustomWageCommissionPercent = 0.05f;
+        public float CustomSponsorCommissionPercent = 0.10f;
+        public int AgencyContractRemainingWeeks = 0;
+    }
+
+    [System.Serializable]
     public class Agency
     {
         public string Name;
@@ -15,6 +26,7 @@ namespace BehindTheScenesFootball.Core
         public float WageCommissionPercent; // e.g. 0.05f for 5%
         public float SponsorCommissionPercent; // e.g. 0.08f for 8%
         public List<string> ClientPlayerIds = new List<string>();
+        public List<ClientSaveData> SavedClients = new List<ClientSaveData>();
         
         [Header("Starting Settings")]
         [System.NonSerialized]
@@ -72,19 +84,33 @@ namespace BehindTheScenesFootball.Core
 
         public void AddClient(Player player)
         {
+            if (player == null) return;
             if (!Clients.Contains(player))
             {
                 Clients.Add(player);
                 player.IsAgencyClient = true;
             }
+            if (!string.IsNullOrEmpty(player.Id) && !ClientPlayerIds.Contains(player.Id))
+            {
+                ClientPlayerIds.Add(player.Id);
+            }
         }
 
         public void RemoveClient(Player player)
         {
+            if (player == null) return;
             if (Clients.Contains(player))
             {
                 Clients.Remove(player);
                 player.IsAgencyClient = false;
+            }
+            if (!string.IsNullOrEmpty(player.Id) && ClientPlayerIds.Contains(player.Id))
+            {
+                ClientPlayerIds.Remove(player.Id);
+            }
+            if (SavedClients != null)
+            {
+                SavedClients.RemoveAll(c => c.PlayerId == player.Id || c.PlayerName == player.Name);
             }
         }
     }
