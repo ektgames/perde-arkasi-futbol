@@ -9,14 +9,15 @@ namespace BehindTheScenesFootball.UI
     public class NewsPanel : BaseModulePanel
     {
         private Transform listContent;
+        private GameObject scrollViewObj;
 
         public override void Initialize(UIManager manager, GameObject container)
         {
             base.Initialize(manager, container);
 
-            // Create a Scroll View inside this container
-            GameObject scrollView = uiManager.CreateScrollViewHelper(panelContainer.transform, "MailsScroll", out listContent);
-            SetRectTransform(scrollView, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.82f), Vector2.zero, Vector2.zero);
+            // Create a Scroll View inside this container (anchored right below HABERLER & E-POSTA header title bar)
+            scrollViewObj = uiManager.CreateScrollViewHelper(panelContainer.transform, "MailsScroll", out listContent);
+            SetRectTransform(scrollViewObj, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.865f), Vector2.zero, Vector2.zero);
         }
 
         public override void Refresh()
@@ -30,8 +31,8 @@ namespace BehindTheScenesFootball.UI
             VerticalLayoutGroup vlg = listContent.gameObject.GetComponent<VerticalLayoutGroup>();
             if (vlg != null)
             {
-                vlg.spacing = 25f;
-                vlg.padding = new RectOffset(20, 20, 30, 30);
+                vlg.spacing = 20f;
+                vlg.padding = new RectOffset(15, 15, 10, 10);
                 vlg.childAlignment = TextAnchor.UpperLeft;
                 vlg.childControlWidth = true;
                 vlg.childControlHeight = false;
@@ -46,11 +47,6 @@ namespace BehindTheScenesFootball.UI
 
             var offers = SimulationEngine.Instance.ActiveOffers;
             var mails = SimulationEngine.Instance.ActiveMails;
-            
-            // Spacer
-            GameObject spacer = new GameObject("HeaderSpacer");
-            spacer.transform.SetParent(listContent, false);
-            spacer.AddComponent<LayoutElement>().minHeight = 10f;
 
             if (offers.Count == 0 && mails.Count == 0)
             {
@@ -73,6 +69,17 @@ namespace BehindTheScenesFootball.UI
                 foreach (var mail in mails)
                 {
                     CreateSimulationMailRow(listContent, mail);
+                }
+            }
+
+            // Always reset scroll view position to top (1.0f) so the first mail and profile card are immediately visible!
+            Canvas.ForceUpdateCanvases();
+            if (scrollViewObj != null)
+            {
+                ScrollRect sr = scrollViewObj.GetComponent<ScrollRect>();
+                if (sr != null)
+                {
+                    sr.verticalNormalizedPosition = 1.0f;
                 }
             }
         }
