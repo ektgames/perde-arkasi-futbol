@@ -253,7 +253,7 @@ namespace BehindTheScenesFootball.Managers
                 pot = Mathf.Max(pot, ovr);
 
                 Player p = new Player(fullName, age, pos, ovr, pot);
-                p.Id = $"p_{club.OriginalName.Replace(" ", "_")}_{fullName.Replace(" ", "_")}_{i}";
+                p.Id = $"p_{club.OriginalName.Replace(" ", "_")}_{fullName.Replace(" ", "_")}_{pos}";
                 p.Nationality = nationality;
 
                 // FIFA / EA FC realistic weekly wage tiers based on OVR

@@ -1366,5 +1366,116 @@ namespace BehindTheScenesFootball.Managers
                 }
             }
         }
+
+        private void GenerateWeeklyClientDialogueRequests()
+        {
+            var agency = AgencyManager.Instance != null ? AgencyManager.Instance.ActiveAgency : null;
+            if (agency == null || agency.Clients == null || agency.Clients.Count == 0) return;
+
+            // 35% chance per week for a client to send a dialogue request if no pending requests exist
+            if (UnityEngine.Random.value > 0.35f) return;
+
+            List<Player> eligibleClients = agency.Clients.FindAll(c => c != null && !ActiveMails.Exists(m => m.PlayerId == c.Id && m.IsRequest));
+            if (eligibleClients.Count == 0) return;
+
+            Player client = eligibleClients[UnityEngine.Random.Range(0, eligibleClients.Count)];
+
+            // 10 Distinct Dialogue Scenarios
+            int scenarioIndex = UnityEngine.Random.Range(0, 10);
+            SimulationMail mail = new SimulationMail
+            {
+                Id = System.Guid.NewGuid().ToString(),
+                Sender = client.Name,
+                PlayerId = client.Id,
+                IsRequest = true,
+                IsRenewalMail = false
+            };
+
+            switch (scenarioIndex)
+            {
+                case 0:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Özel Antrenör İsteyi ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Patron, son zamanlarda bitiricilik/fizik antrenmanlarımda ekstra gelişime ihtiyacım var. Özel bir antrenör tutmamız durumunda performansımı artırabilirim. Bize maliyeti yaklaşık €15,000 olur.'";
+                    mail.RequestType = "Coach";
+                    mail.MoneyCost = 15000;
+                    mail.HappinessEffect = 15;
+                    break;
+
+                case 1:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Basın & İmaj Kampanyası ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Menajerim, son haftalarda hakkımda çıkan asılsız haberler imajımı zedeliyor. Profesyonel bir PR ajansıyla anlaşıp imaj çalışması yaparsak hem moralim düzelir hem piyasa değerim artar. (€25,000)'";
+                    mail.RequestType = "PR";
+                    mail.MoneyCost = 25000;
+                    mail.HappinessEffect = 12;
+                    break;
+
+                case 2:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Maaş İyileştirmesi ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Patron, takımdaki performansıma kıyasla aldığım maaş çok düşük kalıyor. Kulüp yönetimiyle konuşup sözleşmemi iyileştirmemizi rica ediyorum.'";
+                    mail.RequestType = "Wage";
+                    mail.MoneyCost = 0;
+                    mail.HappinessEffect = 10;
+                    break;
+
+                case 3:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Liderlik Desteği ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Menajerim, soyunma odasında daha fazla sorumluluk almak istiyorum. Kulüp yönetimi ve hocayla konuşup liderlik rolümü pekiştirmeme destek olur musun?'";
+                    mail.RequestType = "Leadership";
+                    mail.MoneyCost = 5000;
+                    mail.HappinessEffect = 18;
+                    break;
+
+                case 4:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Transfer Arayışı ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Patron, artık bu kulüpte misyonumu tamamladığımı hissediyorum. Önümüzdeki transfer döneminde teklifleri değerlendirip başka bir takıma gitmeme yardımcı olmanı bekliyorum.'";
+                    mail.RequestType = "Transfer";
+                    mail.MoneyCost = 0;
+                    mail.HappinessEffect = 15;
+                    break;
+
+                case 5:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Fizyoterapist Desteği ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Menajerim, sakatlık riskimi azaltmak ve maç toparlanma süremi kısaltmak için özel bir fizyoterapist ekibiyle çalışmak istiyorum. (€10,000)'";
+                    mail.RequestType = "Physio";
+                    mail.MoneyCost = 10000;
+                    mail.HappinessEffect = 15;
+                    break;
+
+                case 6:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Sponsorluk Arayışı ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Patron, sahada formum yüksek ama hiç bireysel sponsorluk anlaşmam yok. Bana prestijli bir marka sponsorluğu bulabilir misin?'";
+                    mail.RequestType = "Sponsor";
+                    mail.MoneyCost = 0;
+                    mail.HappinessEffect = 10;
+                    break;
+
+                case 7:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Zihinsel Koçluk ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Menajerim, üzerimdeki baskı çok arttı ve saha içi odaklanma sorunu yaşıyorum. Spor psikoloğu ile 1 aylık seans alırsak zihinsel dayanıklılığım artacak. (€8,000)'";
+                    mail.RequestType = "Mental";
+                    mail.MoneyCost = 8000;
+                    mail.HappinessEffect = 20;
+                    break;
+
+                case 8:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Gelişim Kampı ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Patron, potansiyelimi en üst seviyeye çıkarmak için sezon arası kişisel gelişim kampına katılmak istiyorum. (€12,000)'";
+                    mail.RequestType = "Camp";
+                    mail.MoneyCost = 12000;
+                    mail.HappinessEffect = 15;
+                    break;
+
+                case 9:
+                    mail.Subject = $"📩 MÜŞTERİ TALEBİ: Medya Koruması ({client.Name})";
+                    mail.Content = $"{client.Name}: 'Patron, taraftarlar ve sosyal medya son maçtan sonra üzerime çok geliyor. Basına bir açıklama yapıp arkamda olduğunu gösterir misin?'";
+                    mail.RequestType = "MediaSupport";
+                    mail.MoneyCost = 3000;
+                    mail.HappinessEffect = 15;
+                    break;
+            }
+
+            ActiveMails.Add(mail);
+            AgencyManager.Instance.LogActivity($"GELEN MESAJ: {client.Name} size bir talep mesajı gönderdi. Gelen Kutunuzu kontrol edin.");
+        }
     }
 }
