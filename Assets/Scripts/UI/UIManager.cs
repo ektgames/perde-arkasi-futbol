@@ -2564,28 +2564,50 @@ namespace BehindTheScenesFootball.UI
             Club currentClub = DatabaseManager.Instance.GetClubById(p.CurrentContract.ClubId);
             string clubName = currentClub != null ? currentClub.Name : p.CurrentContract.ClubName;
 
-            var (content, overlay, cardObj) = CreateScrollableNegotiationCard(mainCanvas.transform, p, $"{clubName} - Kulüp Görüşmesi & Teklifi", null);
+            string posText = p.Position == PlayerPosition.GK ? "Kaleci (GK)" :
+                             p.Position == PlayerPosition.DEF ? "Defans (DEF)" :
+                             p.Position == PlayerPosition.MID ? "Orta Saha (MID)" : "Forvet (FWD)";
 
-            // Message box
-            GameObject msgPanel = CreatePanelHelper(content, "MsgPanel", new Color(0f, 0f, 0f, 0.25f));
+            string descHeader = $"GEN: {p.OVR} | Yaş: {p.Age} | Pozisyon: {posText}\nKulüp yönetimi kilit oyuncusunu takımda tutmak istiyor.";
+
+            var (content, overlay, cardObj) = CreateScrollableNegotiationCard(mainCanvas.transform, p, $"{clubName} - Kulüp Görüşmesi & Teklifi", null, descHeader);
+
+            // Message Panel Box
+            GameObject msgPanel = CreatePanelHelper(content, "MsgPanel", new Color(0.16f, 0.20f, 0.26f, 0.90f));
             LayoutElement msgLe = msgPanel.AddComponent<LayoutElement>();
-            msgLe.preferredHeight = 360f;
+            msgLe.preferredHeight = 320f;
+            msgLe.minHeight = 320f;
 
-            string textStr = $"<color=#F1C40F><b>{clubName} Başkanı:</b></color>\n\n'{p.Name} kadromuzun en değerli isimlerinden biridir ve onu kaybetmek istemiyoruz!\n\n" +
+            Outline msgOutline = msgPanel.AddComponent<Outline>();
+            msgOutline.effectColor = new Color(0.95f, 0.77f, 0.06f, 0.5f); // Gold accent border
+            msgOutline.effectDistance = new Vector2(2f, 2f);
+
+            string textStr = $"<color=#F1C40F><b>{clubName} Başkanı:</b></color>\n\n" +
+                             $"'{p.Name} kadromuzun en değerli oyuncularından biridir ve onu kesinlikle kaybetmek istemiyoruz!\n\n" +
                              $"Takımdan ayrılmak yerine maaşına zam yaparak kulübümüzde kalmasını teklif ediyoruz. Zam görüşmelerine başlamak ister misiniz?'";
 
-            Text msgTxt = CreateText(msgPanel.transform, "MsgTxt", textStr, 44, Color.white, TextAnchor.MiddleCenter);
-            SetRectTransform(msgTxt, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
+            Text msgTxt = CreateText(msgPanel.transform, "MsgTxt", textStr, 40, Color.white, TextAnchor.MiddleCenter);
+            SetRectTransform(msgTxt, Vector2.zero, Vector2.one, new Vector2(20f, 15f), new Vector2(-20f, -15f));
             var msgScaler = msgTxt.GetComponent<TextScaler>();
             if (msgScaler != null) Destroy(msgScaler);
+            msgTxt.fontSize = 40;
             msgTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
             msgTxt.verticalOverflow = VerticalWrapMode.Overflow;
 
             // Buttons Container
             GameObject btnContainer = new GameObject("BtnContainer", typeof(RectTransform));
             btnContainer.transform.SetParent(content, false);
+            
             LayoutElement btnLe = btnContainer.AddComponent<LayoutElement>();
-            btnLe.preferredHeight = 140f;
+            btnLe.preferredHeight = 120f;
+            btnLe.minHeight = 120f;
+
+            HorizontalLayoutGroup btnHlg = btnContainer.AddComponent<HorizontalLayoutGroup>();
+            btnHlg.spacing = 20;
+            btnHlg.childControlWidth = true;
+            btnHlg.childControlHeight = true;
+            btnHlg.childForceExpandWidth = true;
+            btnHlg.childForceExpandHeight = true;
 
             // Yes (Zam Yap) Button
             Text btnYes = CreateButtonHelper(btnContainer.transform, "BtnYesNego", "EVET (ZAM YAP)", colorGreen, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
@@ -2596,8 +2618,7 @@ namespace BehindTheScenesFootball.UI
                     if (onComplete != null) onComplete();
                 });
             });
-            SetRectTransform(btnYes.transform.parent, new Vector2(0.02f, 0.05f), new Vector2(0.48f, 0.95f), Vector2.zero, Vector2.zero);
-            btnYes.fontSize = 42;
+            btnYes.fontSize = 40;
             btnYes.fontStyle = FontStyle.Bold;
 
             // No (Transfer Listesine Koy) Button
@@ -2609,8 +2630,7 @@ namespace BehindTheScenesFootball.UI
                 Destroy(overlay);
                 if (onComplete != null) onComplete();
             });
-            SetRectTransform(btnNo.transform.parent, new Vector2(0.52f, 0.05f), new Vector2(0.98f, 0.95f), Vector2.zero, Vector2.zero);
-            btnNo.fontSize = 42;
+            btnNo.fontSize = 40;
             btnNo.fontStyle = FontStyle.Bold;
         }
 
