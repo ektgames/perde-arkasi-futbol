@@ -128,9 +128,29 @@ def find_in_artifacts_list(art_list, parse_link_obj_fn):
     candidate_url = None
     candidate_method = "GET"
 
+    if isinstance(art_list, dict):
+        if "artifacts" in art_list and isinstance(art_list["artifacts"], list):
+            art_list = art_list["artifacts"]
+        elif "files" in art_list:
+            art_list = [art_list]
+        else:
+            art_list = [art_list]
+    elif not isinstance(art_list, list):
+        return None, "GET"
+
     for art in art_list:
         if not isinstance(art, dict):
             continue
+
+        # Check if art itself is a file entry with href
+        if "href" in art and ("filename" in art or "name" in art):
+            fn = art.get("filename", "") or art.get("name", "")
+            url, method = parse_link_obj_fn(art)
+            if url:
+                if fn.endswith(".ipa") or fn.endswith(".zip") or "build.ipa" in fn:
+                    return url, method
+                if not candidate_url:
+                    candidate_url, candidate_method = url, method
 
         files = art.get("files", [])
         if isinstance(files, list):
@@ -145,7 +165,7 @@ def find_in_artifacts_list(art_list, parse_link_obj_fn):
                     url, method = parse_link_obj_fn(file_info.get("links", {}).get("download"))
 
                 if url:
-                    if fn.endswith(".ipa") or fn.endswith(".zip"):
+                    if fn.endswith(".ipa") or fn.endswith(".zip") or "build.ipa" in fn:
                         return url, method
                     if not candidate_url:
                         candidate_url, candidate_method = url, method
@@ -163,11 +183,14 @@ def find_in_artifacts_list(art_list, parse_link_obj_fn):
 
     return candidate_url, candidate_method
 
-def extract_download_info(b_info, artifacts_resp):
+def extract_download_info(b_info):
     ipa_url = None
     download_method = "GET"
 
-    links = b_info.get("links", {}) if isinstance(b_info, dict) else {}
+    if not isinstance(b_info, dict):
+        return None, download_method
+
+    links = b_info.get("links", {}) if isinstance(b_info.get("links"), dict) else {}
     for link_key in ["download", "download_primary", "artifacts"]:
         if link_key in links:
             url, method = parse_link_obj(links[link_key])
@@ -175,19 +198,15 @@ def extract_download_info(b_info, artifacts_resp):
                 ipa_url, download_method = url, method
                 break
 
-    if not ipa_url and isinstance(b_info, dict):
-        b_artifacts = b_info.get("artifacts", [])
-        if isinstance(b_artifacts, list):
+    if not ipa_url:
+        b_artifacts = b_info.get("artifacts")
+        if b_artifacts:
             ipa_url, download_method = find_in_artifacts_list(b_artifacts, parse_link_obj)
 
-    if not ipa_url and artifacts_resp:
-        if isinstance(artifacts_resp, list):
-            ipa_url, download_method = find_in_artifacts_list(artifacts_resp, parse_link_obj)
-        elif isinstance(artifacts_resp, dict):
-            if "artifacts" in artifacts_resp and isinstance(artifacts_resp["artifacts"], list):
-                ipa_url, download_method = find_in_artifacts_list(artifacts_resp["artifacts"], parse_link_obj)
-            else:
-                ipa_url, download_method = find_in_artifacts_list([artifacts_resp], parse_link_obj)
+    if not ipa_url:
+        b_files = b_info.get("files")
+        if b_files:
+            ipa_url, download_method = find_in_artifacts_list([{"files": b_files}], parse_link_obj)
 
     if ipa_url and ipa_url.startswith("/"):
         ipa_url = f"https://build-api.cloud.unity3d.com{ipa_url}"
@@ -367,23 +386,17 @@ if not build_success:
 
 print(f"=== Retrieving artifact info for build #{build_num} ===")
 
-b_info = None
-try:
-    b_info, _ = make_request(f"{base_url}/builds/{build_num}")
-    print(f"DEBUG: Complete JSON returned by GET /builds/{build_num}:\n{json.dumps(b_info, indent=2)}")
-except Exception as e:
-    print(f"ERROR fetching GET /builds/{build_num}: {e}")
-    sys.exit(1)
+if not b_info:
+    try:
+        b_info, _ = make_request(f"{base_url}/builds/{build_num}")
+        print(f"DEBUG: Complete JSON returned by GET /builds/{build_num}:\n{json.dumps(b_info, indent=2)}")
+    except Exception as e:
+        print(f"ERROR fetching GET /builds/{build_num}: {e}")
+        sys.exit(1)
+else:
+    print(f"DEBUG: Using stored b_info from polling for build #{build_num}:\n{json.dumps(b_info, indent=2)}")
 
-artifacts = None
-try:
-    artifacts, _ = make_request(f"{base_url}/builds/{build_num}/artifacts")
-    print(f"DEBUG: Complete JSON returned by GET /builds/{build_num}/artifacts:\n{json.dumps(artifacts, indent=2)}")
-except Exception as e:
-    print(f"ERROR fetching GET /builds/{build_num}/artifacts: {e}")
-    sys.exit(1)
-
-ipa_url, download_method = extract_download_info(b_info or {}, artifacts)
+ipa_url, download_method = extract_download_info(b_info or {})
 
 if not ipa_url:
     print("ERROR: Could not retrieve IPA download URL from completed Unity DevOps build.")
