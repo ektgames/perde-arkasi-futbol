@@ -2035,24 +2035,30 @@ namespace BehindTheScenesFootball.UI
                 ? p.TransferStatusNote 
                 : (p.IsTransferListed ? "Transfer Listesinde (Ayrılmak İstiyor)" : null);
 
-            if (!string.IsNullOrEmpty(transferStatusStr))
+            bool hasTransferStatus = !string.IsNullOrEmpty(transferStatusStr);
+
+            if (hasTransferStatus)
             {
-                CreateDetailLabel(cardObj.transform, "LblTransferStatus", $"Transfer Durumu: <color=#F39C12><b>{transferStatusStr}</b></color>", new Vector2(0.08f, 0.232f), new Vector2(0.92f, 0.277f));
+                CreateDetailLabel(cardObj.transform, "LblTransferStatus", $"Transfer Durumu: <color=#F39C12><b>{transferStatusStr}</b></color>", new Vector2(0.08f, 0.285f), new Vector2(0.92f, 0.325f));
             }
 
-            // Traits & Sponsor Area
-            CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.230f), new Vector2(0.48f, 0.270f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
-            CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.230f), new Vector2(0.92f, 0.270f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
+            // Traits & Sponsor Area (Dynamic Accordion Shift)
+            float traitsMinY = hasTransferStatus ? 0.225f : 0.260f;
+            float traitsMaxY = hasTransferStatus ? 0.265f : 0.300f;
+            CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, traitsMinY), new Vector2(0.48f, traitsMaxY), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
+            CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, traitsMinY), new Vector2(0.92f, traitsMaxY), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
 
             if (p.IsAgencyClient)
             {
                 bool hasSponsorOffers = p.ActiveSponsor == null && p.PendingSponsorOffers != null && p.PendingSponsorOffers.Count > 0;
                 if (hasSponsorOffers)
                 {
+                    float sponsorMinY = hasTransferStatus ? 0.155f : 0.185f;
+                    float sponsorMaxY = hasTransferStatus ? 0.205f : 0.235f;
                     Text btnSponsorOffers = CreateButtonHelper(cardObj.transform, "BtnSponsorOffers", $"SPONSOR TEKLİFLERİ ({p.PendingSponsorOffers.Count})", colorGold, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
                         ShowSponsorOffersList(p, modalObj);
                     });
-                    SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, 0.155f), new Vector2(0.92f, 0.210f), Vector2.zero, Vector2.zero);
+                    SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, sponsorMinY), new Vector2(0.92f, sponsorMaxY), Vector2.zero, Vector2.zero);
                     btnSponsorOffers.fontSize = 34;
                     btnSponsorOffers.fontStyle = FontStyle.Bold;
                 }
