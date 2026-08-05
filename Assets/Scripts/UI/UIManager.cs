@@ -2424,7 +2424,7 @@ namespace BehindTheScenesFootball.UI
             string clubName = currentClub != null ? currentClub.Name : p.CurrentContract.ClubName;
 
             int currentWage = p.CurrentContract.WeeklyWage;
-            int currentYears = p.CurrentContract.YearsRemaining;
+            int currentYears = p.CurrentContract.DurationYears;
             int maxTotalYears = 5;
             int maxAdditionalYears = Mathf.Max(0, maxTotalYears - currentYears);
 
@@ -2533,7 +2533,7 @@ namespace BehindTheScenesFootball.UI
 
                 int totalYears = currentYears + addedYears;
                 p.CurrentContract.WeeklyWage = proposedWage;
-                p.CurrentContract.YearsRemaining = totalYears;
+                p.CurrentContract.DurationYears = totalYears;
                 p.Happiness = Mathf.Clamp(p.Happiness + 25f, 0f, 100f);
 
                 AgencyManager.Instance.LogActivity($"ZAM ANLAŞMASI: Müşteriniz {p.Name}, {clubName} kulübü ile sözleşmesini yeniledi (Yeni Maaş: €{proposedWage:N0}/hafta, Toplam Süre: {totalYears} Yıl). Oyuncu Morali: +25");
