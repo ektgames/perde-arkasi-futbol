@@ -23,9 +23,6 @@ class UnityDevOpsAPI:
         """Query builds list to find existing completed or running build for commit_sha."""
         try:
             builds_resp, _ = self.http_client.request(f"{self.base_url}/builds?limit=10")
-            print("=== BUILDS ===", flush=True)
-            print(builds_resp, flush=True)
-            print("==============", flush=True)
             builds: List[Dict[str, Any]] = []
             if isinstance(builds_resp, list):
                 builds = builds_resp
