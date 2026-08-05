@@ -2367,38 +2367,62 @@ namespace BehindTheScenesFootball.UI
             scrollRect.content = contentRt;
             scrollRect.viewport = viewportObj.GetComponent<RectTransform>();
 
-            // Header Row (Face & Info side-by-side)
+            // Header Row (Face & Info side-by-side using dynamic HorizontalLayoutGroup)
             GameObject headerContainer = new GameObject("HeaderContainer", typeof(RectTransform));
             headerContainer.transform.SetParent(contentRt, false);
-            LayoutElement headerLe = headerContainer.AddComponent<LayoutElement>();
-            headerLe.preferredHeight = 320f;
-            headerLe.minHeight = 320f;
 
-            GameObject faceObj = new GameObject("LargeMiniface");
+            HorizontalLayoutGroup headerHlg = headerContainer.AddComponent<HorizontalLayoutGroup>();
+            headerHlg.spacing = 20;
+            headerHlg.childAlignment = TextAnchor.UpperLeft;
+            headerHlg.childControlWidth = true;
+            headerHlg.childControlHeight = true;
+            headerHlg.childForceExpandWidth = false;
+            headerHlg.childForceExpandHeight = false;
+
+            ContentSizeFitter headerCsf = headerContainer.AddComponent<ContentSizeFitter>();
+            headerCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            headerCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            // 1. Miniface (Fixed 200px Width x 240px Height)
+            GameObject faceObj = new GameObject("LargeMiniface", typeof(RectTransform));
             faceObj.transform.SetParent(headerContainer.transform, false);
-            SetRectTransform(faceObj, new Vector2(0.02f, 0.05f), new Vector2(0.28f, 0.95f), Vector2.zero, Vector2.zero);
+            
+            LayoutElement faceLe = faceObj.AddComponent<LayoutElement>();
+            faceLe.preferredWidth = 200f;
+            faceLe.minWidth = 200f;
+            faceLe.preferredHeight = 240f;
+            faceLe.minHeight = 240f;
+
             Image faceImg = faceObj.AddComponent<Image>();
             faceImg.sprite = GetMiniface(p);
             faceImg.preserveAspect = true;
 
+            // 2. Right Text Column (Dynamic Height & Flexible Width)
             GameObject headerTextContainer = new GameObject("HeaderTextContainer", typeof(RectTransform));
             headerTextContainer.transform.SetParent(headerContainer.transform, false);
-            SetRectTransform(headerTextContainer, new Vector2(0.32f, 0.05f), new Vector2(0.98f, 0.95f), Vector2.zero, Vector2.zero);
+            
+            LayoutElement textLe = headerTextContainer.AddComponent<LayoutElement>();
+            textLe.flexibleWidth = 1f;
+
             VerticalLayoutGroup textVlg = headerTextContainer.AddComponent<VerticalLayoutGroup>();
-            textVlg.spacing = 15f;
-            textVlg.childAlignment = TextAnchor.MiddleLeft;
+            textVlg.spacing = 10f;
+            textVlg.childAlignment = TextAnchor.UpperLeft;
             textVlg.childControlWidth = true;
             textVlg.childControlHeight = true;
             textVlg.childForceExpandWidth = true;
             textVlg.childForceExpandHeight = false;
 
-            Text titleTxt = CreateText(headerTextContainer.transform, "NegoTitle", titleText, 48, Color.white, TextAnchor.MiddleLeft);
+            ContentSizeFitter textCsf = headerTextContainer.AddComponent<ContentSizeFitter>();
+            textCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            textCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            Text titleTxt = CreateText(headerTextContainer.transform, "NegoTitle", titleText, 44, Color.white, TextAnchor.MiddleLeft);
             titleTxt.fontStyle = FontStyle.Bold;
-            titleTxt.resizeTextForBestFit = false;
+            var titleScaler = titleTxt.GetComponent<TextScaler>();
+            if (titleScaler != null) Destroy(titleScaler);
+            titleTxt.fontSize = 44;
             titleTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
             titleTxt.verticalOverflow = VerticalWrapMode.Overflow;
-            ContentSizeFitter titleCsf = titleTxt.gameObject.AddComponent<ContentSizeFitter>();
-            titleCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             string posText = p.Position == PlayerPosition.GK ? "Kaleci (GK)" :
                              p.Position == PlayerPosition.DEF ? "Defans (DEF)" :
@@ -2408,11 +2432,12 @@ namespace BehindTheScenesFootball.UI
             {
                 descStr = $"GEN: {p.OVR} | Yaş: {p.Age} | Pozisyon: {posText}\nSözleşme süresini uzun tutarsanız komisyon oranlarında esneklik payı artar.";
             }
-            Text descTxt = CreateText(headerTextContainer.transform, "NegoDesc", descStr, 38, new Color(0.7f, 0.75f, 0.8f), TextAnchor.MiddleLeft);
+            Text descTxt = CreateText(headerTextContainer.transform, "NegoDesc", descStr, 36, new Color(0.7f, 0.75f, 0.8f), TextAnchor.MiddleLeft);
+            var descScaler = descTxt.GetComponent<TextScaler>();
+            if (descScaler != null) Destroy(descScaler);
+            descTxt.fontSize = 36;
             descTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
             descTxt.verticalOverflow = VerticalWrapMode.Overflow;
-            ContentSizeFitter descCsf = descTxt.gameObject.AddComponent<ContentSizeFitter>();
-            descCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             // Separator
             GameObject sep = CreatePanelHelper(contentRt, "Separator", new Color(1f, 1f, 1f, 0.1f));
