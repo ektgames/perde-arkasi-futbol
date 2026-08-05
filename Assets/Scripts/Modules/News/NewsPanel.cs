@@ -86,47 +86,134 @@ namespace BehindTheScenesFootball.UI
 
         private void CreateOfferMailRow(Transform parent, TransferOffer offer)
         {
-            GameObject row = uiManager.CreatePanelHelper(parent, "OfferMailRow_" + offer.Id, new Color(0.18f, 0.22f, 0.28f, 0.85f));
+            Player p = string.IsNullOrEmpty(offer.PlayerId) ? null : DatabaseManager.Instance.GetPlayerById(offer.PlayerId);
+
+            GameObject row = uiManager.CreatePanelHelper(parent, "OfferMailRow_" + offer.Id, new Color(0.14f, 0.18f, 0.24f, 0.95f));
             
             Outline border = row.AddComponent<Outline>();
-            border.effectColor = uiManager.ColorAccent;
-            border.effectDistance = new Vector2(3f, 3f);
+            border.effectColor = new Color(0.2f, 0.6f, 0.9f, 0.5f);
+            border.effectDistance = new Vector2(2f, 2f);
 
-            VerticalLayoutGroup layoutGroup = row.AddComponent<VerticalLayoutGroup>();
-            layoutGroup.padding = new RectOffset(30, 30, 30, 30);
-            layoutGroup.spacing = 20;
-            layoutGroup.childAlignment = TextAnchor.UpperLeft;
-            layoutGroup.childControlHeight = true;
-            layoutGroup.childControlWidth = true;
-            layoutGroup.childForceExpandHeight = false;
-            layoutGroup.childForceExpandWidth = true;
+            // 1. Dikey Kart Düzeni (Üstte Oyuncu & Metinler, Altta Butonlar)
+            VerticalLayoutGroup mainVlg = row.AddComponent<VerticalLayoutGroup>();
+            mainVlg.padding = new RectOffset(25, 25, 25, 25);
+            mainVlg.spacing = 20;
+            mainVlg.childAlignment = TextAnchor.UpperLeft;
+            mainVlg.childControlWidth = true;
+            mainVlg.childControlHeight = true;
+            mainVlg.childForceExpandWidth = true;
+            mainVlg.childForceExpandHeight = false;
+
+            ContentSizeFitter rowCsf = row.AddComponent<ContentSizeFitter>();
+            rowCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            rowCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             LayoutElement rowLe = row.AddComponent<LayoutElement>();
-            rowLe.minHeight = 280f;
+            rowLe.minHeight = 260f;
 
-            // Body
+            // --- A. ÜST BÖLÜM: Sol (Oyuncu Kartı) - Sağ (Konu ve Mesaj Metni) ---
+            GameObject headerContainer = new GameObject("HeaderContainer", typeof(RectTransform));
+            headerContainer.transform.SetParent(row.transform, false);
+
+            HorizontalLayoutGroup headerHlg = headerContainer.AddComponent<HorizontalLayoutGroup>();
+            headerHlg.spacing = 25;
+            headerHlg.childAlignment = TextAnchor.UpperLeft;
+            headerHlg.childControlWidth = true;
+            headerHlg.childControlHeight = true;
+            headerHlg.childForceExpandWidth = false;
+            headerHlg.childForceExpandHeight = false;
+
+            ContentSizeFitter headerCsf = headerContainer.AddComponent<ContentSizeFitter>();
+            headerCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            headerCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            if (p != null)
+            {
+                // Sol: Oyuncu Profil Kartı (Sabit 180px Genişlik x 220px Yükseklik)
+                GameObject cardObj = uiManager.CreatePanelHelper(headerContainer.transform, "MailPlayerCard", new Color(0.12f, 0.15f, 0.20f, 1f));
+                LayoutElement cardLe = cardObj.AddComponent<LayoutElement>();
+                cardLe.preferredWidth = 180f;
+                cardLe.minWidth = 180f;
+                cardLe.preferredHeight = 220f;
+                cardLe.minHeight = 220f;
+                
+                Button cardBtn = cardObj.AddComponent<Button>();
+                cardBtn.onClick.AddListener(() => {
+                    uiManager.ShowPlayerDetails(p, false);
+                });
+                uiManager.ConfigureButtonTransition(cardBtn);
+
+                Image cardImg = cardObj.GetComponent<Image>();
+                if (cardImg != null && uiManager.RoundedButtonSprite != null)
+                {
+                    cardImg.sprite = uiManager.RoundedButtonSprite;
+                    cardImg.type = Image.Type.Sliced;
+                }
+
+                GameObject faceObj = new GameObject("CardFace", typeof(RectTransform));
+                faceObj.transform.SetParent(cardObj.transform, false);
+                SetRectTransform(faceObj, new Vector2(0.05f, 0.28f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
+                Image faceImg = faceObj.AddComponent<Image>();
+                faceImg.sprite = uiManager.GetMiniface(p);
+                faceImg.preserveAspect = true;
+
+                string ratingStr = $"<color=#58D68D><b>{p.OVR}</b></color> {p.Position}";
+                Text ovrTxt = CreateText(cardObj.transform, "CardOVR", ratingStr, 34, Color.white, TextAnchor.MiddleCenter);
+                SetRectTransform(ovrTxt, new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.26f), Vector2.zero, Vector2.zero);
+            }
+
+            // Sağ: Metin Sütunu (Konu ve Mesaj)
+            GameObject textCol = new GameObject("TextColumn", typeof(RectTransform));
+            textCol.transform.SetParent(headerContainer.transform, false);
+
+            LayoutElement textColLe = textCol.AddComponent<LayoutElement>();
+            textColLe.flexibleWidth = 1f;
+
+            VerticalLayoutGroup textVlg = textCol.AddComponent<VerticalLayoutGroup>();
+            textVlg.spacing = 10;
+            textVlg.childAlignment = TextAnchor.UpperLeft;
+            textVlg.childControlWidth = true;
+            textVlg.childControlHeight = true;
+            textVlg.childForceExpandWidth = true;
+            textVlg.childForceExpandHeight = false;
+
+            ContentSizeFitter textCsf = textCol.AddComponent<ContentSizeFitter>();
+            textCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            textCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            // Subject (Başlık)
+            string playerTitle = p != null ? p.Name : "Oyuncu";
+            string subjectText = offer.IsLoanOffer ? $"KİRALAMA TEKLİFİ: {playerTitle}" : $"TRANSFER TEKLİFİ: {playerTitle}";
+            Text subject = CreateText(textCol.transform, "Subject", subjectText, 46, uiManager.ColorAccent, TextAnchor.MiddleLeft);
+            subject.fontStyle = FontStyle.Bold;
+            var subScaler = subject.GetComponent<TextScaler>();
+            if (subScaler != null) Destroy(subScaler);
+            subject.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            // Body (Mesaj İçeriği)
             string bodyText;
             if (offer.IsLoanOffer)
             {
                 bodyText = $"<b>{offer.CurrentClubName}</b>, <b>{offer.BidderClubName}</b> kulübünün <b>kiralama</b> teklifini kabul etti!\n" +
-                           $"Oyuncu için önerilen sözleşme şartları: <b>{offer.ContractLengthYears} Yıl Kiralık</b> ({offer.BidderClubName} kulübünde oynaması planlanıyor)";
+                           $"Önerilen şartlar: <b>{offer.ContractLengthYears} Yıl Kiralık</b>";
             }
             else
             {
                 bodyText = $"<b>{offer.CurrentClubName}</b>, <b>{offer.BidderClubName}</b> kulübünün <b>€{offer.TransferFee:N0}</b> bonservis teklifini kabul etti!\n" +
-                           $"Oyuncu için önerilen sözleşme şartları: <b>€{offer.OfferedWeeklyWage:N0}/hafta</b> ({offer.ContractLengthYears} Yıl)";
+                           $"Önerilen sözleşme: <b>€{offer.OfferedWeeklyWage:N0}/hafta</b> ({offer.ContractLengthYears} Yıl)";
             }
 
-            Text body = CreateText(row.transform, "Body", bodyText, 48, Color.white, TextAnchor.MiddleLeft);
-            var scaler = body.GetComponent<TextScaler>();
-            if (scaler != null) Destroy(scaler);
-            body.fontSize = Mathf.RoundToInt(48 * 1.55f);
+            Text body = CreateText(textCol.transform, "Body", bodyText, 40, Color.white, TextAnchor.MiddleLeft);
+            var bodyScaler = body.GetComponent<TextScaler>();
+            if (bodyScaler != null) Destroy(bodyScaler);
+            body.fontSize = 40;
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
             body.verticalOverflow = VerticalWrapMode.Overflow;
-            body.resizeTextForBestFit = false;
 
-            // Buttons Container
-            GameObject buttonsContainer = uiManager.CreatePanelHelper(row.transform, "ButtonsContainer", Color.clear);
+            // --- B. ALT BÖLÜM: Butonlar Grubu ---
+            GameObject buttonsContainer = new GameObject("ButtonsContainer", typeof(RectTransform));
+            buttonsContainer.transform.SetParent(row.transform, false);
+
             LayoutElement buttonsLe = buttonsContainer.AddComponent<LayoutElement>();
             buttonsLe.minHeight = 110f;
             buttonsLe.preferredHeight = 110f;
