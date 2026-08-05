@@ -28,6 +28,15 @@ public static class iOSBuildScript
         PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.iOS, "com.ektgames.perdearkasifutbol");
         Debug.Log("[iOSBuildScript] Set Bundle Identifier to: com.ektgames.perdearkasifutbol");
 
+        // Set AppIcon texture
+        Texture2D appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AppIcon1024.png");
+        if (appIcon != null)
+        {
+            PlayerSettings.SetIcons(NamedBuildTarget.iOS, new Texture2D[] { appIcon }, IconKind.Application);
+            PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new Texture2D[] { appIcon }, IconKind.Application);
+            Debug.Log("[iOSBuildScript] Successfully set AppIcon texture for iOS target.");
+        }
+
         // Get enabled scenes in build settings
         string[] scenes = EditorBuildSettings.scenes
             .Where(s => s.enabled && !string.IsNullOrEmpty(s.path))
