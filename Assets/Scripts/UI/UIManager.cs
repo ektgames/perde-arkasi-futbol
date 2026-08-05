@@ -2036,7 +2036,6 @@ namespace BehindTheScenesFootball.UI
                     btnSponsorOffers.fontSize = 34;
                     btnSponsorOffers.fontStyle = FontStyle.Bold;
                 }
-            }
 
                 int currentGlobalWeek = SimulationEngine.Instance.CurrentYear * 52 + SimulationEngine.Instance.CurrentWeek;
                 int weeksElapsed = currentGlobalWeek - p.LastInteractionGlobalWeek;
