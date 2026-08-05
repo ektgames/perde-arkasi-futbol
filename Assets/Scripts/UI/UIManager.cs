@@ -1958,6 +1958,11 @@ namespace BehindTheScenesFootball.UI
             else if (p.Happiness >= 35f) { happyStr = "Huzursuz / Endişeli"; happyColor = "#F39C12"; }
             else { happyStr = "Krizde / Ayrılmak İstiyor"; happyColor = "#E74C3C"; }
 
+            string val = $"€{p.MarketValue:N0}";
+            string sponsorText = p.ActiveSponsor != null 
+                ? $"<color=#F1C40F><b>{p.ActiveSponsor.BrandName} ({p.ActiveSponsor.DurationYears} Yıl - €{p.ActiveSponsor.WeeklyIncome:N0}/hafta)</b></color>" 
+                : "<b>Sözleşme Yok</b>";
+
                     // Vertical list of Details Labels
             if (p.IsAgencyClient)
             {
@@ -1977,8 +1982,6 @@ namespace BehindTheScenesFootball.UI
                     string durationStr = yrs > 0 ? $"{yrs} Yıl {wks} Hafta" : $"{wks} Hafta";
                     CreateDetailLabel(cardObj.transform, "LblAgentDuration", $"Ajans Sözleşmesi: <color=#58D68D><b>{durationStr}</b></color>", new Vector2(0.08f, 0.380f), new Vector2(0.92f, 0.425f));
                     CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.332f), new Vector2(0.92f, 0.377f));
-                    
-                    string val = $"€{p.MarketValue:N0}";
                     CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.284f), new Vector2(0.92f, 0.329f));
                 }
                 else
@@ -1996,8 +1999,6 @@ namespace BehindTheScenesFootball.UI
                     string durationStr = yrs > 0 ? $"{yrs} Yıl {wks} Hafta" : $"{wks} Hafta";
                     CreateDetailLabel(cardObj.transform, "LblAgentDuration", $"Ajans Sözleşmesi: <color=#58D68D><b>{durationStr}</b></color>", new Vector2(0.08f, 0.390f), new Vector2(0.92f, 0.440f));
                     CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.335f), new Vector2(0.92f, 0.385f));
-                    
-                    string val = $"€{p.MarketValue:N0}";
                     CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.280f), new Vector2(0.92f, 0.330f));
                 }
             }
@@ -2014,8 +2015,6 @@ namespace BehindTheScenesFootball.UI
                     CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.445f), new Vector2(0.92f, 0.495f));
                     CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.390f), new Vector2(0.92f, 0.440f));
                     CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.335f), new Vector2(0.92f, 0.385f));
-                    
-                    string val = $"€{p.MarketValue:N0}";
                     CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.280f), new Vector2(0.92f, 0.330f));
                 }
                 else
