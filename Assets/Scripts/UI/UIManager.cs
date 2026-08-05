@@ -1852,7 +1852,7 @@ namespace BehindTheScenesFootball.UI
             modalRt.offsetMax = Vector2.zero;
 
             Image modalImg = modalObj.AddComponent<Image>();
-            modalImg.color = new Color(0.05f, 0.08f, 0.12f, 0.96f);
+            modalImg.color = new Color(0.05f, 0.08f, 0.12f, 1.0f);
 
             modalObj.AddComponent<CanvasGroup>();
             Button modalBtn = modalObj.AddComponent<Button>();
@@ -2285,7 +2285,7 @@ namespace BehindTheScenesFootball.UI
             modalRt.offsetMax = Vector2.zero;
 
             Image modalImg = modalObj.AddComponent<Image>();
-            modalImg.color = new Color(0.05f, 0.08f, 0.12f, 0.96f);
+            modalImg.color = new Color(0.05f, 0.08f, 0.12f, 1.0f);
 
             modalObj.AddComponent<CanvasGroup>();
             Button modalBtn = modalObj.AddComponent<Button>();
