@@ -2598,29 +2598,23 @@ namespace BehindTheScenesFootball.UI
 
             var (content, overlay, cardObj) = CreateScrollableNegotiationCard(mainCanvas.transform, p, $"{clubName} - Kulüp Görüşmesi & Teklifi", null, descHeader);
 
-            // Message Panel Box
-            GameObject msgPanel = CreatePanelHelper(content, "MsgPanel", new Color(0.16f, 0.20f, 0.26f, 0.90f));
-            LayoutElement msgLe = msgPanel.AddComponent<LayoutElement>();
-            msgLe.preferredHeight = 480f;
-            msgLe.minHeight = 480f;
-
-            Outline msgOutline = msgPanel.AddComponent<Outline>();
-            msgOutline.effectColor = new Color(0.95f, 0.77f, 0.06f, 0.5f); // Gold accent border
-            msgOutline.effectDistance = new Vector2(2f, 2f);
-
+            // Plain text message (NO gold box, NO border, dynamic vertical height)
             string textStr = $"<color=#F1C40F><b>{clubName} Başkanı:</b></color>\n\n" +
                              $"'{p.Name} kadromuzun en değerli oyuncularından biridir ve onu kesinlikle kaybetmek istemiyoruz!\n\n" +
                              $"Takımdan ayrılmak yerine maaşına zam yaparak kulübümüzde kalmasını teklif ediyoruz. Zam görüşmelerine başlamak ister misiniz?'";
 
-            Text msgTxt = CreateText(msgPanel.transform, "MsgTxt", textStr, 40, Color.white, TextAnchor.MiddleCenter);
-            SetRectTransform(msgTxt, Vector2.zero, Vector2.one, new Vector2(20f, 15f), new Vector2(-20f, -15f));
+            Text msgTxt = CreateText(content, "PresidentMessageText", textStr, 40, Color.white, TextAnchor.MiddleLeft);
             var msgScaler = msgTxt.GetComponent<TextScaler>();
             if (msgScaler != null) Destroy(msgScaler);
             msgTxt.fontSize = 40;
             msgTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
             msgTxt.verticalOverflow = VerticalWrapMode.Overflow;
 
-            // Buttons Container
+            ContentSizeFitter msgCsf = msgTxt.gameObject.AddComponent<ContentSizeFitter>();
+            msgCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            msgCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            // Buttons Container at bottom
             GameObject btnContainer = new GameObject("BtnContainer", typeof(RectTransform));
             btnContainer.transform.SetParent(content, false);
             
