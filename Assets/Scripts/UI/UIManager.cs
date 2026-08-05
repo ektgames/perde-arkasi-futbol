@@ -1958,51 +1958,47 @@ namespace BehindTheScenesFootball.UI
             else if (p.Happiness >= 35f) { happyStr = "Huzursuz / Endişeli"; happyColor = "#F39C12"; }
             else { happyStr = "Krizde / Ayrılmak İstiyor"; happyColor = "#E74C3C"; }
 
-            string sponsorText = p.ActiveSponsor != null 
-                ? $"<color=#F1C40F><b>{p.ActiveSponsor.BrandName} ({p.ActiveSponsor.DurationYears} Yıl - €{p.ActiveSponsor.WeeklyIncome:N0}/hafta)</b></color>" 
-                : "<b>Sözleşme Yok</b>";
-
-            // Vertical list of Details Labels
+                    // Vertical list of Details Labels
             if (p.IsAgencyClient)
             {
                 if (p.IsOnLoan)
                 {
                     // 8 labels
-                    CreateDetailLabel(cardObj.transform, "LblClub", $"Asıl Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.615f), new Vector2(0.92f, 0.655f));
-                    CreateDetailLabel(cardObj.transform, "LblLoanStatus", $"Kiralık: <color=#F1C40F><b>{p.CurrentContract.ClubName} kulübünde kiralık</b></color>", new Vector2(0.08f, 0.570f), new Vector2(0.92f, 0.610f));
+                    CreateDetailLabel(cardObj.transform, "LblClub", $"Asıl Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.620f), new Vector2(0.92f, 0.665f));
+                    CreateDetailLabel(cardObj.transform, "LblLoanStatus", $"Kiralık: <color=#F1C40F><b>{p.CurrentContract.ClubName} kulübünde kiralık</b></color>", new Vector2(0.08f, 0.572f), new Vector2(0.92f, 0.617f));
                     
                     string roleStr = p.CurrentContract != null ? $"Kadro Rolü: <color=#F1C40F><b>{p.SquadRole}</b></color>" : "Kadro Rolü: <b>Yok</b>";
-                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.525f), new Vector2(0.92f, 0.565f));
-                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.480f), new Vector2(0.92f, 0.520f));
-                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.435f), new Vector2(0.92f, 0.475f));
+                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.524f), new Vector2(0.92f, 0.569f));
+                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.476f), new Vector2(0.92f, 0.521f));
+                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.428f), new Vector2(0.92f, 0.473f));
                     
                     int yrs = p.AgencyContractRemainingWeeks / 52;
                     int wks = p.AgencyContractRemainingWeeks % 52;
                     string durationStr = yrs > 0 ? $"{yrs} Yıl {wks} Hafta" : $"{wks} Hafta";
-                    CreateDetailLabel(cardObj.transform, "LblAgentDuration", $"Ajans Sözleşmesi: <color=#58D68D><b>{durationStr}</b></color>", new Vector2(0.08f, 0.390f), new Vector2(0.92f, 0.430f));
-                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.345f), new Vector2(0.92f, 0.385f));
+                    CreateDetailLabel(cardObj.transform, "LblAgentDuration", $"Ajans Sözleşmesi: <color=#58D68D><b>{durationStr}</b></color>", new Vector2(0.08f, 0.380f), new Vector2(0.92f, 0.425f));
+                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.332f), new Vector2(0.92f, 0.377f));
                     
                     string val = $"€{p.MarketValue:N0}";
-                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.300f), new Vector2(0.92f, 0.340f));
+                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.284f), new Vector2(0.92f, 0.329f));
                 }
                 else
                 {
                     // 7 labels
-                    CreateDetailLabel(cardObj.transform, "LblClub", $"Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.605f), new Vector2(0.92f, 0.650f));
+                    CreateDetailLabel(cardObj.transform, "LblClub", $"Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.610f), new Vector2(0.92f, 0.660f));
                     
                     string roleStr = p.CurrentContract != null ? $"Kadro Rolü: <color=#F1C40F><b>{p.SquadRole}</b></color>" : "Kadro Rolü: <b>Yok</b>";
-                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.555f), new Vector2(0.92f, 0.600f));
-                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.505f), new Vector2(0.92f, 0.550f));
-                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.455f), new Vector2(0.92f, 0.500f));
+                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.555f), new Vector2(0.92f, 0.605f));
+                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.500f), new Vector2(0.92f, 0.550f));
+                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.445f), new Vector2(0.92f, 0.495f));
                     
                     int yrs = p.AgencyContractRemainingWeeks / 52;
                     int wks = p.AgencyContractRemainingWeeks % 52;
                     string durationStr = yrs > 0 ? $"{yrs} Yıl {wks} Hafta" : $"{wks} Hafta";
-                    CreateDetailLabel(cardObj.transform, "LblAgentDuration", $"Ajans Sözleşmesi: <color=#58D68D><b>{durationStr}</b></color>", new Vector2(0.08f, 0.405f), new Vector2(0.92f, 0.450f));
-                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.355f), new Vector2(0.92f, 0.400f));
+                    CreateDetailLabel(cardObj.transform, "LblAgentDuration", $"Ajans Sözleşmesi: <color=#58D68D><b>{durationStr}</b></color>", new Vector2(0.08f, 0.390f), new Vector2(0.92f, 0.440f));
+                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.335f), new Vector2(0.92f, 0.385f));
                     
                     string val = $"€{p.MarketValue:N0}";
-                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.305f), new Vector2(0.92f, 0.350f));
+                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.280f), new Vector2(0.92f, 0.330f));
                 }
             }
             else
@@ -2010,37 +2006,35 @@ namespace BehindTheScenesFootball.UI
                 if (p.IsOnLoan)
                 {
                     // 7 labels
-                    CreateDetailLabel(cardObj.transform, "LblClub", $"Asıl Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.605f), new Vector2(0.92f, 0.650f));
-                    CreateDetailLabel(cardObj.transform, "LblLoanStatus", $"Kiralık: <color=#F1C40F><b>{p.CurrentContract.ClubName} kulübünde kiralık</b></color>", new Vector2(0.08f, 0.555f), new Vector2(0.92f, 0.600f));
+                    CreateDetailLabel(cardObj.transform, "LblClub", $"Asıl Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.610f), new Vector2(0.92f, 0.660f));
+                    CreateDetailLabel(cardObj.transform, "LblLoanStatus", $"Kiralık: <color=#F1C40F><b>{p.CurrentContract.ClubName} kulübünde kiralık</b></color>", new Vector2(0.08f, 0.555f), new Vector2(0.92f, 0.605f));
                     
                     string roleStr = p.CurrentContract != null ? $"Kadro Rolü: <color=#F1C40F><b>{p.SquadRole}</b></color>" : "Kadro Rolü: <b>Yok</b>";
-                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.505f), new Vector2(0.92f, 0.550f));
-                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.455f), new Vector2(0.92f, 0.500f));
-                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.405f), new Vector2(0.92f, 0.450f));
-                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.355f), new Vector2(0.92f, 0.400f));
+                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.500f), new Vector2(0.92f, 0.550f));
+                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.445f), new Vector2(0.92f, 0.495f));
+                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.390f), new Vector2(0.92f, 0.440f));
+                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.335f), new Vector2(0.92f, 0.385f));
                     
                     string val = $"€{p.MarketValue:N0}";
-                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.305f), new Vector2(0.92f, 0.350f));
+                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.280f), new Vector2(0.92f, 0.330f));
                 }
                 else
                 {
                     // 6 labels
-                    CreateDetailLabel(cardObj.transform, "LblClub", $"Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.600f), new Vector2(0.92f, 0.645f));
+                    CreateDetailLabel(cardObj.transform, "LblClub", $"Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, 0.605f), new Vector2(0.92f, 0.655f));
                     
                     string roleStr = p.CurrentContract != null ? $"Kadro Rolü: <color=#F1C40F><b>{p.SquadRole}</b></color>" : "Kadro Rolü: <b>Yok</b>";
-                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.540f), new Vector2(0.92f, 0.585f));
-                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.480f), new Vector2(0.92f, 0.525f));
-                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.420f), new Vector2(0.92f, 0.465f));
-                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.360f), new Vector2(0.92f, 0.405f));
-                    
-                    string val = $"€{p.MarketValue:N0}";
-                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.300f), new Vector2(0.92f, 0.345f));
+                    CreateDetailLabel(cardObj.transform, "LblRole", roleStr, new Vector2(0.08f, 0.540f), new Vector2(0.92f, 0.590f));
+                    CreateDetailLabel(cardObj.transform, "LblWage", $"Maaş: <b>{wage}</b>", new Vector2(0.08f, 0.475f), new Vector2(0.92f, 0.525f));
+                    CreateDetailLabel(cardObj.transform, "LblHappiness", $"Mutluluk: <color={happyColor}><b>%{p.Happiness:0} ({happyStr})</b></color>", new Vector2(0.08f, 0.410f), new Vector2(0.92f, 0.460f));
+                    CreateDetailLabel(cardObj.transform, "LblActiveSponsor", $"Sponsorluk: {sponsorText}", new Vector2(0.08f, 0.345f), new Vector2(0.92f, 0.395f));
+                    CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, 0.280f), new Vector2(0.92f, 0.330f));
                 }
             }
 
             // Traits & Sponsor Area
-            CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.24f), new Vector2(0.48f, 0.28f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
-            CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.24f), new Vector2(0.92f, 0.28f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
+            CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.220f), new Vector2(0.48f, 0.265f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
+            CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.220f), new Vector2(0.92f, 0.265f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
 
             if (p.IsAgencyClient)
             {
@@ -2710,9 +2704,14 @@ namespace BehindTheScenesFootball.UI
 
         private void CreateDetailLabel(Transform parent, string name, string label, Vector2 anchorMin, Vector2 anchorMax)
         {
-            Text txt = CreateText(parent, name, label, 48, Color.white, TextAnchor.MiddleLeft);
+            Text txt = CreateText(parent, name, label, 46, Color.white, TextAnchor.MiddleLeft);
+            var scaler = txt.GetComponent<TextScaler>();
+            if (scaler != null) Destroy(scaler);
+            txt.fontSize = 46;
+            txt.fontStyle = FontStyle.Bold;
             txt.horizontalOverflow = HorizontalWrapMode.Wrap;
             txt.verticalOverflow = VerticalWrapMode.Overflow;
+            txt.resizeTextForBestFit = false;
             SetRectTransform(txt, anchorMin, anchorMax, Vector2.zero, Vector2.zero);
         }
 
