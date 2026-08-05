@@ -32,8 +32,8 @@ public static class iOSBuildScript
         Texture2D appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AppIcon1024.png");
         if (appIcon != null)
         {
-            PlayerSettings.SetIcons(NamedBuildTarget.iOS, new Texture2D[] { appIcon }, IconKind.Application);
-            PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new Texture2D[] { appIcon }, IconKind.Application);
+            PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.iOS, new Texture2D[] { appIcon });
+            PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Unknown, new Texture2D[] { appIcon });
             Debug.Log("[iOSBuildScript] Successfully set AppIcon texture for iOS target.");
         }
 
