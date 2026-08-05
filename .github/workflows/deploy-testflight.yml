@@ -22,7 +22,7 @@ jobs:
           UNITY_ORG_ID: ${{ secrets.UNITY_ORG_ID }}
           UNITY_PROJECT_ID: ${{ secrets.UNITY_PROJECT_ID }}
           UNITY_BUILD_TARGET_ID: ${{ secrets.UNITY_BUILD_TARGET_ID }}
-        run: python3 scripts/unity_devops_download.py
+        run: python3 scripts/unity_download.py
 
       - name: Verify IPA
         run: |
