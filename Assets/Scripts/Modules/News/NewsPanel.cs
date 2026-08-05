@@ -159,33 +159,34 @@ namespace BehindTheScenesFootball.UI
         {
             Player p = string.IsNullOrEmpty(mail.PlayerId) ? null : DatabaseManager.Instance.GetPlayerById(mail.PlayerId);
 
-            GameObject row = uiManager.CreatePanelHelper(parent, "SimMailRow_" + mail.Id, new Color(0.14f, 0.18f, 0.24f, 0.90f));
+            GameObject row = uiManager.CreatePanelHelper(parent, "SimMailRow_" + mail.Id, new Color(0.14f, 0.18f, 0.24f, 0.95f));
             
             Outline border = row.AddComponent<Outline>();
             border.effectColor = new Color(0.2f, 0.6f, 0.9f, 0.5f);
             border.effectDistance = new Vector2(2f, 2f);
 
-            // Dikey hizalama ve otomatik boyutlandırma (çakışmaları önler)
-            VerticalLayoutGroup layoutGroup = row.AddComponent<VerticalLayoutGroup>();
-            layoutGroup.padding = new RectOffset(30, 30, 30, 30);
-            layoutGroup.spacing = 20;
-            layoutGroup.childAlignment = TextAnchor.UpperLeft;
-            layoutGroup.childControlHeight = true;
-            layoutGroup.childControlWidth = true;
-            layoutGroup.childForceExpandHeight = false;
-            layoutGroup.childForceExpandWidth = true;
+            // Yatay düzen: Sol = Oyuncu Profil Kartı, Sağ = Mail İçeriği (Konu, Metin, Butonlar)
+            HorizontalLayoutGroup rowHlg = row.AddComponent<HorizontalLayoutGroup>();
+            rowHlg.padding = new RectOffset(20, 20, 20, 20);
+            rowHlg.spacing = 25;
+            rowHlg.childAlignment = TextAnchor.UpperLeft;
+            rowHlg.childControlHeight = true;
+            rowHlg.childControlWidth = true;
+            rowHlg.childForceExpandHeight = false;
+            rowHlg.childForceExpandWidth = false;
 
             LayoutElement rowLe = row.AddComponent<LayoutElement>();
             rowLe.minHeight = 280f;
 
             if (p != null)
             {
-                // En sol üstte oyuncunun profil kartı (Arayüz düzeninden hariç tutuldu)
+                // Sol Sütun: Oyuncu Profil Kartı (Sabit 220px genişlik)
                 GameObject cardObj = uiManager.CreatePanelHelper(row.transform, "MailPlayerCard", new Color(0.12f, 0.15f, 0.20f, 1f));
-                SetRectTransform(cardObj, new Vector2(0.02f, 0.15f), new Vector2(0.20f, 0.85f), Vector2.zero, Vector2.zero);
-                
                 LayoutElement cardLe = cardObj.AddComponent<LayoutElement>();
-                cardLe.ignoreLayout = true; // Dikey düzen grubunun bu kartı hizalamasını engelliyoruz
+                cardLe.preferredWidth = 220f;
+                cardLe.minWidth = 220f;
+                cardLe.preferredHeight = 280f;
+                cardLe.minHeight = 280f;
                 
                 Button cardBtn = cardObj.AddComponent<Button>();
                 cardBtn.onClick.AddListener(() => {
@@ -202,51 +203,43 @@ namespace BehindTheScenesFootball.UI
 
                 GameObject faceObj = new GameObject("CardFace");
                 faceObj.transform.SetParent(cardObj.transform, false);
-                SetRectTransform(faceObj, new Vector2(0.1f, 0.35f), new Vector2(0.9f, 0.95f), Vector2.zero, Vector2.zero);
+                SetRectTransform(faceObj, new Vector2(0.05f, 0.28f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
                 Image faceImg = faceObj.AddComponent<Image>();
                 faceImg.sprite = uiManager.GetMiniface(p);
+                faceImg.preserveAspect = true;
 
                 string ratingStr = $"<color=#58D68D><b>{p.OVR}</b></color> {p.Position}";
                 Text ovrTxt = CreateText(cardObj.transform, "CardOVR", ratingStr, 34, Color.white, TextAnchor.MiddleCenter);
-                SetRectTransform(ovrTxt, new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.30f), Vector2.zero, Vector2.zero);
+                SetRectTransform(ovrTxt, new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.26f), Vector2.zero, Vector2.zero);
             }
 
-            // Metin ve butonların bulunduğu sağ sütun (kart varsa sol tarafa boşluk verilir)
+            // Sağ Sütun: Metinler ve Butonlar (Kalan tüm genişliği doldurur)
             GameObject rightCol = new GameObject("RightColumn");
             rightCol.transform.SetParent(row.transform, false);
 
+            LayoutElement rightLe = rightCol.AddComponent<LayoutElement>();
+            rightLe.flexibleWidth = 1f;
+
             VerticalLayoutGroup rightLayout = rightCol.AddComponent<VerticalLayoutGroup>();
-            rightLayout.padding = new RectOffset((p != null) ? 210 : 0, 0, 0, 0); // Oyuncu kartı varsa sola 210px boşluk ver
+            rightLayout.padding = new RectOffset(0, 0, 0, 0);
             rightLayout.spacing = 15;
             rightLayout.childControlHeight = true;
             rightLayout.childControlWidth = true;
             rightLayout.childForceExpandHeight = false;
             rightLayout.childForceExpandWidth = true;
 
-            ContentSizeFitter rightFitter = rightCol.AddComponent<ContentSizeFitter>();
-            rightFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            rightFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-
             // Subject
-            Text subject = CreateText(rightCol.transform, "Subject", mail.Subject, 54, uiManager.ColorAccent, TextAnchor.MiddleLeft);
+            Text subject = CreateText(rightCol.transform, "Subject", mail.Subject, 50, uiManager.ColorAccent, TextAnchor.MiddleLeft);
             subject.fontStyle = FontStyle.Bold;
-            
-            ContentSizeFitter subjectFitter = subject.gameObject.AddComponent<ContentSizeFitter>();
-            subjectFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            subjectFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             // Body
-            Text body = CreateText(rightCol.transform, "Body", mail.Content, 48, Color.white, TextAnchor.MiddleLeft);
+            Text body = CreateText(rightCol.transform, "Body", mail.Content, 44, Color.white, TextAnchor.MiddleLeft);
             var scaler = body.GetComponent<TextScaler>();
             if (scaler != null) Destroy(scaler);
-            body.fontSize = Mathf.RoundToInt(48 * 1.55f);
+            body.fontSize = 44;
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
             body.verticalOverflow = VerticalWrapMode.Overflow;
             body.resizeTextForBestFit = false;
-            
-            ContentSizeFitter bodyFitter = body.gameObject.AddComponent<ContentSizeFitter>();
-            bodyFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            bodyFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             if (mail.IsRenewalMail)
             {
