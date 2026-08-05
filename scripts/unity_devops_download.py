@@ -234,10 +234,14 @@ def download_artifact(ipa_url, download_method, download_path):
 
         try:
             print(f"[HTTP] {download_method} {ipa_url}", flush=True)
-            with opener.open(req, timeout=30) as resp, open(download_path, "wb") as out_file:
-                print(f"[HTTP OK] {resp.status}", flush=True)
-                out_file.write(resp.read())
-            return True
+            with opener.open(req, timeout=30) as resp:
+                status_code = resp.status
+                resp_headers = dict(resp.headers)
+                print(f"[HTTP OK] {status_code}", flush=True)
+                print(f"[HTTP RESPONSE HEADERS]\n{resp.headers}", flush=True)
+                with open(download_path, "wb") as out_file:
+                    out_file.write(resp.read())
+            return True, resp_headers
         except (socket.timeout, urllib.error.URLError) as e:
             if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
                 print(f"HTTP TIMEOUT for {ipa_url}", flush=True)
@@ -254,7 +258,7 @@ def download_artifact(ipa_url, download_method, download_path):
             print(f"Download attempt failed: {e}", flush=True)
             continue
 
-    return False
+    return False, {}
 
 print(f"=== Checking existing Unity DevOps builds for target '{target_id}' ===")
 build_num = None
@@ -407,28 +411,84 @@ print(f"Resolved Artifact Download URL: {ipa_url} (Method: {download_method})")
 print("=== Downloading build artifact ===")
 download_path = "build_download.tmp"
 
-download_success = download_artifact(ipa_url, download_method, download_path)
+download_success, resp_headers = download_artifact(ipa_url, download_method, download_path)
 
 if not download_success:
     print("ERROR: Failed to download artifact from Unity DevOps.")
     sys.exit(1)
 
-if zipfile.is_zipfile(download_path):
-    print("Downloaded file is a ZIP archive, extracting .ipa...")
-    with zipfile.ZipFile(download_path, "r") as zip_ref:
-        ipa_members = [m for m in zip_ref.namelist() if m.endswith(".ipa")]
-        if ipa_members:
-            zip_ref.extract(ipa_members[0], ".")
-            if ipa_members[0] != "Unity-iPhone.ipa":
-                os.rename(ipa_members[0], "Unity-iPhone.ipa")
-        else:
-            print("ERROR: No .ipa file found inside downloaded ZIP archive.")
-            sys.exit(1)
-    os.remove(download_path)
-else:
-    os.rename(download_path, "Unity-iPhone.ipa")
+print("\n=== Inspecting downloaded build artifact ===")
+file_size = os.path.getsize(download_path)
+content_type = resp_headers.get("Content-Type", resp_headers.get("content-type", "Unknown"))
+print(f"Downloaded File Path: {download_path} | Size: {file_size} bytes")
+print(f"HTTP Response Content-Type: {content_type}")
 
-print("Download and extraction complete: 'Unity-iPhone.ipa'")
+with open(download_path, "rb") as f:
+    first_bytes = f.read(32)
+hex_bytes = " ".join(f"{b:02x}" for b in first_bytes)
+ascii_bytes = "".join(chr(b) if 32 <= b <= 126 else "." for b in first_bytes)
+print(f"First 32 bytes (Hex):   {hex_bytes}")
+print(f"First 32 bytes (ASCII): {ascii_bytes}")
+
+if zipfile.is_zipfile(download_path):
+    print("\nDownloaded file is formatted as a ZIP archive. Inspecting entries...")
+    with zipfile.ZipFile(download_path, "r") as zip_ref:
+        namelist = zip_ref.namelist()
+        print(f"Total entries in ZIP archive: {len(namelist)}")
+
+        # Check if Payload/ folder exists inside (indicating this zip IS directly an .ipa file)
+        has_payload = any(m.startswith("Payload/") or m.startswith("payload/") or "/Payload/" in m or "/payload/" in m for m in namelist)
+
+        # Search for .ipa members (root or subdirectories)
+        ipa_members = [m for m in namelist if m.lower().endswith(".ipa")]
+
+        # Non-directory file members
+        file_members = [m for m in namelist if not m.endswith("/")]
+
+        if has_payload:
+            print("ZIP archive contains 'Payload/' directory structure -> File IS ALREADY a valid .ipa package!")
+            zip_ref.close()
+            if os.path.exists("Unity-iPhone.ipa"):
+                os.remove("Unity-iPhone.ipa")
+            os.rename(download_path, "Unity-iPhone.ipa")
+            print("Saved artifact directly as 'Unity-iPhone.ipa' without extraction.")
+        elif ipa_members:
+            chosen_ipa = ipa_members[0]
+            print(f"Found embedded .ipa file in archive: '{chosen_ipa}'. Extracting...")
+            zip_ref.extract(chosen_ipa, ".")
+            zip_ref.close()
+            if chosen_ipa != "Unity-iPhone.ipa":
+                if os.path.exists("Unity-iPhone.ipa"):
+                    os.remove("Unity-iPhone.ipa")
+                os.rename(chosen_ipa, "Unity-iPhone.ipa")
+            os.remove(download_path)
+            print("Successfully extracted and saved 'Unity-iPhone.ipa'")
+        elif len(file_members) == 1:
+            single_file = file_members[0]
+            print(f"ZIP archive contains a single file: '{single_file}'. Extracting as IPA...")
+            zip_ref.extract(single_file, ".")
+            zip_ref.close()
+            if single_file != "Unity-iPhone.ipa":
+                if os.path.exists("Unity-iPhone.ipa"):
+                    os.remove("Unity-iPhone.ipa")
+                os.rename(single_file, "Unity-iPhone.ipa")
+            os.remove(download_path)
+            print("Successfully extracted single file as 'Unity-iPhone.ipa'")
+        else:
+            print("\n=== ALL FILES IN ZIP ARCHIVE ===")
+            for member in namelist:
+                print(f" - {member}")
+            print("================================")
+            print("ERROR: No .ipa file or Payload/ directory found inside downloaded ZIP archive.")
+            sys.exit(1)
+else:
+    print("\nDownloaded file is NOT a ZIP archive format. Saving directly as IPA...")
+    if os.path.exists("Unity-iPhone.ipa"):
+        os.remove("Unity-iPhone.ipa")
+    os.rename(download_path, "Unity-iPhone.ipa")
+    print("Saved artifact directly as 'Unity-iPhone.ipa'")
+
+print("Download and artifact verification complete: 'Unity-iPhone.ipa'")
 
 
 
