@@ -165,28 +165,48 @@ namespace BehindTheScenesFootball.UI
             border.effectColor = new Color(0.2f, 0.6f, 0.9f, 0.5f);
             border.effectDistance = new Vector2(2f, 2f);
 
-            // Yatay düzen: Sol = Oyuncu Profil Kartı, Sağ = Mail İçeriği (Konu, Metin, Butonlar)
-            HorizontalLayoutGroup rowHlg = row.AddComponent<HorizontalLayoutGroup>();
-            rowHlg.padding = new RectOffset(20, 20, 20, 20);
-            rowHlg.spacing = 25;
-            rowHlg.childAlignment = TextAnchor.UpperLeft;
-            rowHlg.childControlHeight = true;
-            rowHlg.childControlWidth = true;
-            rowHlg.childForceExpandHeight = false;
-            rowHlg.childForceExpandWidth = false;
+            // 1. Dikey Kart Düzeni (Üstte Oyuncu & Metinler, Altta Butonlar)
+            VerticalLayoutGroup mainVlg = row.AddComponent<VerticalLayoutGroup>();
+            mainVlg.padding = new RectOffset(25, 25, 25, 25);
+            mainVlg.spacing = 20;
+            mainVlg.childAlignment = TextAnchor.UpperLeft;
+            mainVlg.childControlWidth = true;
+            mainVlg.childControlHeight = true;
+            mainVlg.childForceExpandWidth = true;
+            mainVlg.childForceExpandHeight = false;
+
+            ContentSizeFitter rowCsf = row.AddComponent<ContentSizeFitter>();
+            rowCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            rowCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             LayoutElement rowLe = row.AddComponent<LayoutElement>();
-            rowLe.minHeight = 280f;
+            rowLe.minHeight = 260f;
+
+            // --- A. ÜST BÖLÜM: Sol (Oyuncu Kartı) - Sağ (Konu ve Mesaj Metni) ---
+            GameObject headerContainer = new GameObject("HeaderContainer", typeof(RectTransform));
+            headerContainer.transform.SetParent(row.transform, false);
+
+            HorizontalLayoutGroup headerHlg = headerContainer.AddComponent<HorizontalLayoutGroup>();
+            headerHlg.spacing = 25;
+            headerHlg.childAlignment = TextAnchor.UpperLeft;
+            headerHlg.childControlWidth = true;
+            headerHlg.childControlHeight = true;
+            headerHlg.childForceExpandWidth = false;
+            headerHlg.childForceExpandHeight = false;
+
+            ContentSizeFitter headerCsf = headerContainer.AddComponent<ContentSizeFitter>();
+            headerCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            headerCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             if (p != null)
             {
-                // Sol Sütun: Oyuncu Profil Kartı (Sabit 220px genişlik)
-                GameObject cardObj = uiManager.CreatePanelHelper(row.transform, "MailPlayerCard", new Color(0.12f, 0.15f, 0.20f, 1f));
+                // Sol: Oyuncu Profil Kartı (Sabit 180px Genişlik x 220px Yükseklik)
+                GameObject cardObj = uiManager.CreatePanelHelper(headerContainer.transform, "MailPlayerCard", new Color(0.12f, 0.15f, 0.20f, 1f));
                 LayoutElement cardLe = cardObj.AddComponent<LayoutElement>();
-                cardLe.preferredWidth = 220f;
-                cardLe.minWidth = 220f;
-                cardLe.preferredHeight = 280f;
-                cardLe.minHeight = 280f;
+                cardLe.preferredWidth = 180f;
+                cardLe.minWidth = 180f;
+                cardLe.preferredHeight = 220f;
+                cardLe.minHeight = 220f;
                 
                 Button cardBtn = cardObj.AddComponent<Button>();
                 cardBtn.onClick.AddListener(() => {
@@ -201,7 +221,7 @@ namespace BehindTheScenesFootball.UI
                     cardImg.type = Image.Type.Sliced;
                 }
 
-                GameObject faceObj = new GameObject("CardFace");
+                GameObject faceObj = new GameObject("CardFace", typeof(RectTransform));
                 faceObj.transform.SetParent(cardObj.transform, false);
                 SetRectTransform(faceObj, new Vector2(0.05f, 0.28f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
                 Image faceImg = faceObj.AddComponent<Image>();
@@ -213,37 +233,44 @@ namespace BehindTheScenesFootball.UI
                 SetRectTransform(ovrTxt, new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.26f), Vector2.zero, Vector2.zero);
             }
 
-            // Sağ Sütun: Metinler ve Butonlar (Kalan tüm genişliği doldurur)
-            GameObject rightCol = new GameObject("RightColumn");
-            rightCol.transform.SetParent(row.transform, false);
+            // Sağ: Metin Sütunu (Konu ve Mesaj)
+            GameObject textCol = new GameObject("TextColumn", typeof(RectTransform));
+            textCol.transform.SetParent(headerContainer.transform, false);
 
-            LayoutElement rightLe = rightCol.AddComponent<LayoutElement>();
-            rightLe.flexibleWidth = 1f;
+            LayoutElement textColLe = textCol.AddComponent<LayoutElement>();
+            textColLe.flexibleWidth = 1f;
 
-            VerticalLayoutGroup rightLayout = rightCol.AddComponent<VerticalLayoutGroup>();
-            rightLayout.padding = new RectOffset(0, 0, 0, 0);
-            rightLayout.spacing = 15;
-            rightLayout.childControlHeight = true;
-            rightLayout.childControlWidth = true;
-            rightLayout.childForceExpandHeight = false;
-            rightLayout.childForceExpandWidth = true;
+            VerticalLayoutGroup textVlg = textCol.AddComponent<VerticalLayoutGroup>();
+            textVlg.spacing = 10;
+            textVlg.childAlignment = TextAnchor.UpperLeft;
+            textVlg.childControlWidth = true;
+            textVlg.childControlHeight = true;
+            textVlg.childForceExpandWidth = true;
+            textVlg.childForceExpandHeight = false;
 
-            // Subject
-            Text subject = CreateText(rightCol.transform, "Subject", mail.Subject, 50, uiManager.ColorAccent, TextAnchor.MiddleLeft);
+            ContentSizeFitter textCsf = textCol.AddComponent<ContentSizeFitter>();
+            textCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            textCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            // Subject (Başlık)
+            Text subject = CreateText(textCol.transform, "Subject", mail.Subject, 46, uiManager.ColorAccent, TextAnchor.MiddleLeft);
             subject.fontStyle = FontStyle.Bold;
+            var subScaler = subject.GetComponent<TextScaler>();
+            if (subScaler != null) Destroy(subScaler);
+            subject.horizontalOverflow = HorizontalWrapMode.Wrap;
 
-            // Body
-            Text body = CreateText(rightCol.transform, "Body", mail.Content, 44, Color.white, TextAnchor.MiddleLeft);
-            var scaler = body.GetComponent<TextScaler>();
-            if (scaler != null) Destroy(scaler);
-            body.fontSize = 44;
+            // Body (İçerik)
+            Text body = CreateText(textCol.transform, "Body", mail.Content, 40, Color.white, TextAnchor.MiddleLeft);
+            var bodyScaler = body.GetComponent<TextScaler>();
+            if (bodyScaler != null) Destroy(bodyScaler);
+            body.fontSize = 40;
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
             body.verticalOverflow = VerticalWrapMode.Overflow;
-            body.resizeTextForBestFit = false;
 
+            // --- B. ALT BÖLÜM: Aksiyon Butonları (Tüm Kart Genişliğinde) ---
             if (mail.IsRenewalMail)
             {
-                GameObject buttonsContainer = uiManager.CreatePanelHelper(rightCol.transform, "ButtonsContainer", Color.clear);
+                GameObject buttonsContainer = uiManager.CreatePanelHelper(row.transform, "ButtonsContainer", Color.clear);
                 LayoutElement buttonsLe = buttonsContainer.AddComponent<LayoutElement>();
                 buttonsLe.minHeight = 110f;
                 buttonsLe.preferredHeight = 110f;
@@ -273,7 +300,7 @@ namespace BehindTheScenesFootball.UI
             }
             else if (mail.IsRequest)
             {
-                GameObject buttonsContainer = uiManager.CreatePanelHelper(rightCol.transform, "ButtonsContainer", Color.clear);
+                GameObject buttonsContainer = uiManager.CreatePanelHelper(row.transform, "ButtonsContainer", Color.clear);
                 LayoutElement buttonsLe = buttonsContainer.AddComponent<LayoutElement>();
                 buttonsLe.minHeight = 110f;
                 buttonsLe.preferredHeight = 110f;
@@ -405,7 +432,7 @@ namespace BehindTheScenesFootball.UI
             }
             else
             {
-                GameObject buttonsContainer = uiManager.CreatePanelHelper(rightCol.transform, "ButtonsContainer", Color.clear);
+                GameObject buttonsContainer = uiManager.CreatePanelHelper(row.transform, "ButtonsContainer", Color.clear);
                 LayoutElement buttonsLe = buttonsContainer.AddComponent<LayoutElement>();
                 buttonsLe.minHeight = 110f;
                 buttonsLe.preferredHeight = 110f;
