@@ -2042,17 +2042,20 @@ namespace BehindTheScenesFootball.UI
             CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.24f), new Vector2(0.48f, 0.28f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
             CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.24f), new Vector2(0.92f, 0.28f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
 
-            bool hasSponsorOffers = p.IsAgencyClient && p.ActiveSponsor == null && p.PendingSponsorOffers != null && p.PendingSponsorOffers.Count > 0;
-            if (hasSponsorOffers)
+            if (p.IsAgencyClient)
             {
-                Text btnSponsorOffers = CreateButtonHelper(cardObj.transform, "BtnSponsorOffers", $"SPONSOR TEKLİFLERİ ({p.PendingSponsorOffers.Count})", colorGold, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
-                    ShowSponsorOffersList(p, modalObj);
-                });
-                SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.23f), Vector2.zero, Vector2.zero);
-                btnSponsorOffers.fontSize = 34;
-                btnSponsorOffers.fontStyle = FontStyle.Bold;
-            }
-                  int currentGlobalWeek = SimulationEngine.Instance.CurrentYear * 52 + SimulationEngine.Instance.CurrentWeek;
+                bool hasSponsorOffers = p.ActiveSponsor == null && p.PendingSponsorOffers != null && p.PendingSponsorOffers.Count > 0;
+                if (hasSponsorOffers)
+                {
+                    Text btnSponsorOffers = CreateButtonHelper(cardObj.transform, "BtnSponsorOffers", $"SPONSOR TEKLİFLERİ ({p.PendingSponsorOffers.Count})", colorGold, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
+                        ShowSponsorOffersList(p, modalObj);
+                    });
+                    SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.23f), Vector2.zero, Vector2.zero);
+                    btnSponsorOffers.fontSize = 34;
+                    btnSponsorOffers.fontStyle = FontStyle.Bold;
+                }
+
+                int currentGlobalWeek = SimulationEngine.Instance.CurrentYear * 52 + SimulationEngine.Instance.CurrentWeek;
                 int weeksElapsed = currentGlobalWeek - p.LastInteractionGlobalWeek;
                 bool canInteract = p.LastInteractionGlobalWeek == -999 || weeksElapsed >= 4;
 
