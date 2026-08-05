@@ -1959,7 +1959,11 @@ namespace BehindTheScenesFootball.UI
             else { happyStr = "Krizde / Ayrılmak İstiyor"; happyColor = "#E74C3C"; }
 
             string val = $"€{p.MarketValue:N0}";
-                  // Dynamic Vertical List of Details Labels (Guarantees zero overlap for any player type)
+            string sponsorText = p.ActiveSponsor != null 
+                ? $"<color=#F1C40F><b>{p.ActiveSponsor.BrandName} ({p.ActiveSponsor.DurationYears} Yıl - €{p.ActiveSponsor.WeeklyIncome:N0}/hafta)</b></color>" 
+                : "<b>Sözleşme Yok</b>";
+
+            // Dynamic Vertical List of Details Labels (Guarantees zero overlap for any player type)
             float curY = 0.610f;
             float stepY = 0.052f;
             float labelHeight = 0.042f;
