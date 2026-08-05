@@ -2041,8 +2041,8 @@ namespace BehindTheScenesFootball.UI
             }
 
             // Traits & Sponsor Area
-            CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.220f), new Vector2(0.48f, 0.265f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
-            CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.220f), new Vector2(0.92f, 0.265f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
+            CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, 0.230f), new Vector2(0.48f, 0.270f), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
+            CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, 0.230f), new Vector2(0.92f, 0.270f), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
 
             if (p.IsAgencyClient)
             {
@@ -2052,7 +2052,7 @@ namespace BehindTheScenesFootball.UI
                     Text btnSponsorOffers = CreateButtonHelper(cardObj.transform, "BtnSponsorOffers", $"SPONSOR TEKLİFLERİ ({p.PendingSponsorOffers.Count})", colorGold, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
                         ShowSponsorOffersList(p, modalObj);
                     });
-                    SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.23f), Vector2.zero, Vector2.zero);
+                    SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, 0.155f), new Vector2(0.92f, 0.210f), Vector2.zero, Vector2.zero);
                     btnSponsorOffers.fontSize = 34;
                     btnSponsorOffers.fontStyle = FontStyle.Bold;
                 }
@@ -2071,7 +2071,7 @@ namespace BehindTheScenesFootball.UI
                     Destroy(modalObj);
                     ShowPlayerDetails(p, allowSigning);
                 });
-                SetRectTransform(btnPraise.transform.parent, new Vector2(0.08f, 0.08f), new Vector2(0.32f, 0.13f), Vector2.zero, Vector2.zero);
+                SetRectTransform(btnPraise.transform.parent, new Vector2(0.08f, 0.085f), new Vector2(0.32f, 0.135f), Vector2.zero, Vector2.zero);
                 btnPraise.fontSize = 34;
                 btnPraise.fontStyle = FontStyle.Bold;
                 if (!canInteract)
@@ -2096,7 +2096,7 @@ namespace BehindTheScenesFootball.UI
                     Destroy(modalObj);
                     ShowPlayerDetails(p, allowSigning);
                 });
-                SetRectTransform(btnBonus.transform.parent, new Vector2(0.36f, 0.08f), new Vector2(0.64f, 0.13f), Vector2.zero, Vector2.zero);
+                SetRectTransform(btnBonus.transform.parent, new Vector2(0.36f, 0.085f), new Vector2(0.64f, 0.135f), Vector2.zero, Vector2.zero);
                 btnBonus.fontSize = canInteract ? 32 : 34;
                 btnBonus.fontStyle = FontStyle.Bold;
                 if (!canInteract)
@@ -2115,7 +2115,7 @@ namespace BehindTheScenesFootball.UI
                     Destroy(modalObj);
                     ShowPlayerDetails(p, allowSigning);
                 });
-                SetRectTransform(btnWarn.transform.parent, new Vector2(0.68f, 0.08f), new Vector2(0.92f, 0.13f), Vector2.zero, Vector2.zero);
+                SetRectTransform(btnWarn.transform.parent, new Vector2(0.68f, 0.085f), new Vector2(0.92f, 0.135f), Vector2.zero, Vector2.zero);
                 btnWarn.fontSize = 34;
                 btnWarn.fontStyle = FontStyle.Bold;
                 if (!canInteract)
