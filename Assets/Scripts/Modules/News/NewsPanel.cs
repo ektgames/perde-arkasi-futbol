@@ -297,8 +297,8 @@ namespace BehindTheScenesFootball.UI
                                 break;
 
                             case "Wage":
-                                uiManager.ShowSignNegotiation(p, () => Refresh());
-                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} ile sözleşme yenileme masasına oturuluyor.");
+                                uiManager.ShowClubWageRenegotiation(p, () => Refresh());
+                                AgencyManager.Instance.LogActivity($"TALEBİ KARŞILADINIZ: {p.Name} için kulübü ile maaş zam görüşmelerine başlandı.");
                                 break;
 
                             case "Leadership":

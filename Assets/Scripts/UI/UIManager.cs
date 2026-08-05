@@ -2412,6 +2412,138 @@ namespace BehindTheScenesFootball.UI
             return (contentRt, modalObj, cardObj);
         }
 
+        public void ShowClubWageRenegotiation(Player p, System.Action onComplete)
+        {
+            if (p == null || p.CurrentContract == null)
+            {
+                if (onComplete != null) onComplete();
+                return;
+            }
+
+            Club currentClub = DatabaseManager.Instance.GetClubById(p.CurrentContract.ClubId);
+            string clubName = currentClub != null ? currentClub.Name : p.CurrentContract.ClubName;
+
+            int currentWage = p.CurrentContract.WeeklyWage;
+            int currentYears = p.CurrentContract.YearsRemaining;
+            int maxTotalYears = 5;
+            int maxAdditionalYears = Mathf.Max(0, maxTotalYears - currentYears);
+
+            int proposedWage = Mathf.RoundToInt(currentWage * 1.15f);
+            int addedYears = 0;
+
+            var (content, overlay, cardObj) = CreateScrollableNegotiationCard(mainCanvas.transform, p, $"{clubName} - Maaş İyileştirme & Zam", null);
+
+            Text wageValText = null;
+            Text yearsValText = null;
+
+            // 1. Current Contract Info (Read-Only Summary)
+            GameObject infoRow = new GameObject("InfoRow", typeof(RectTransform));
+            infoRow.transform.SetParent(content, false);
+            LayoutElement infoLe = infoRow.AddComponent<LayoutElement>();
+            infoLe.preferredHeight = 120f;
+            Text infoTxt = CreateText(infoRow.transform, "InfoTxt", $"Mevcut Sözleşme: <b>€{currentWage:N0} / hafta</b> ({currentYears} Yıl Kalan)", 44, Color.white, TextAnchor.MiddleCenter);
+            SetRectTransform(infoTxt, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            // 2. Wage Demand Row
+            GameObject wageRow = new GameObject("WageRow", typeof(RectTransform));
+            wageRow.transform.SetParent(content, false);
+            LayoutElement wageLe = wageRow.AddComponent<LayoutElement>();
+            wageLe.preferredHeight = 180f;
+
+            Text lblWage = CreateText(wageRow.transform, "LblWage", "Yeni Haftalık Maaş:", 44, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(lblWage, new Vector2(0.02f, 0f), new Vector2(0.34f, 1f), Vector2.zero, Vector2.zero);
+            lblWage.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            wageValText = CreateText(wageRow.transform, "WageValText", $"€{proposedWage:N0}", 48, colorAccent, TextAnchor.MiddleRight);
+            SetRectTransform(wageValText, new Vector2(0.36f, 0f), new Vector2(0.74f, 1f), Vector2.zero, Vector2.zero);
+            wageValText.fontStyle = FontStyle.Bold;
+
+            Text btnWageMinus = CreateButtonHelper(wageRow.transform, "BtnWageMinus", "-", new Color(0.18f, 0.22f, 0.25f, 1f), Color.white, () => {
+                proposedWage = Mathf.Max(currentWage, proposedWage - 250);
+                wageValText.text = $"€{proposedWage:N0}";
+            });
+            SetRectTransform(btnWageMinus.transform.parent, new Vector2(0.76f, 0.1f), new Vector2(0.86f, 0.9f), Vector2.zero, Vector2.zero);
+            btnWageMinus.fontSize = 48;
+
+            Text btnWagePlus = CreateButtonHelper(wageRow.transform, "BtnWagePlus", "+", new Color(0.18f, 0.22f, 0.25f, 1f), Color.white, () => {
+                int maxWage = Mathf.RoundToInt(currentWage * 1.50f);
+                proposedWage = Mathf.Min(maxWage, proposedWage + 250);
+                wageValText.text = $"€{proposedWage:N0}";
+            });
+            SetRectTransform(btnWagePlus.transform.parent, new Vector2(0.88f, 0.1f), new Vector2(0.98f, 0.9f), Vector2.zero, Vector2.zero);
+            btnWagePlus.fontSize = 48;
+
+            // 3. Extension Years Row (Capped so currentYears + addedYears <= 5)
+            GameObject yearsRow = new GameObject("YearsRow", typeof(RectTransform));
+            yearsRow.transform.SetParent(content, false);
+            LayoutElement yearsLe = yearsRow.AddComponent<LayoutElement>();
+            yearsLe.preferredHeight = 180f;
+
+            Text lblYears = CreateText(yearsRow.transform, "LblYears", "Ek Sözleşme Süresi:", 44, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(lblYears, new Vector2(0.02f, 0f), new Vector2(0.34f, 1f), Vector2.zero, Vector2.zero);
+            lblYears.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            System.Action updateYearsText = () => {
+                int totalY = currentYears + addedYears;
+                yearsValText.text = addedYears > 0 ? $"+{addedYears} Yıl (Toplam {totalY} Yıl)" : $"Uzatma Yok ({currentYears} Yıl)";
+            };
+
+            yearsValText = CreateText(yearsRow.transform, "YearsValText", "", 44, colorAccent, TextAnchor.MiddleRight);
+            SetRectTransform(yearsValText, new Vector2(0.36f, 0f), new Vector2(0.74f, 1f), Vector2.zero, Vector2.zero);
+            yearsValText.fontStyle = FontStyle.Bold;
+            updateYearsText();
+
+            Text btnYearsMinus = CreateButtonHelper(yearsRow.transform, "BtnYearsMinus", "-", new Color(0.18f, 0.22f, 0.25f, 1f), Color.white, () => {
+                addedYears = Mathf.Max(0, addedYears - 1);
+                updateYearsText();
+            });
+            SetRectTransform(btnYearsMinus.transform.parent, new Vector2(0.76f, 0.1f), new Vector2(0.86f, 0.9f), Vector2.zero, Vector2.zero);
+            btnYearsMinus.fontSize = 48;
+
+            Text btnYearsPlus = CreateButtonHelper(yearsRow.transform, "BtnYearsPlus", "+", new Color(0.18f, 0.22f, 0.25f, 1f), Color.white, () => {
+                addedYears = Mathf.Min(maxAdditionalYears, addedYears + 1);
+                updateYearsText();
+            });
+            SetRectTransform(btnYearsPlus.transform.parent, new Vector2(0.88f, 0.1f), new Vector2(0.98f, 0.9f), Vector2.zero, Vector2.zero);
+            btnYearsPlus.fontSize = 48;
+
+            // 4. Feedback Box
+            GameObject feedbackPanel = CreatePanelHelper(content, "FeedbackPanel", new Color(0f, 0f, 0f, 0.25f));
+            LayoutElement fbLe = feedbackPanel.AddComponent<LayoutElement>();
+            fbLe.preferredHeight = 260f;
+
+            Text feedbackTxt = CreateText(feedbackPanel.transform, "FeedbackTxt", $"{clubName} yönetimi zam ve sözleşme uzatma talebinizi değerlendiriyor.", 44, new Color(0.8f, 0.85f, 0.9f), TextAnchor.MiddleCenter);
+            SetRectTransform(feedbackTxt, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero);
+            feedbackTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            feedbackTxt.verticalOverflow = VerticalWrapMode.Overflow;
+
+            // 5. Submit Button
+            GameObject submitContainer = new GameObject("SubmitContainer", typeof(RectTransform));
+            submitContainer.transform.SetParent(content, false);
+            LayoutElement subLe = submitContainer.AddComponent<LayoutElement>();
+            subLe.preferredHeight = 120f;
+
+            Text btnSubmit = CreateButtonHelper(submitContainer.transform, "BtnSubmitWageNego", "KULÜBE TEKLİFİ SUN", colorGreen, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
+                int maxAcceptableWage = Mathf.RoundToInt(currentWage * 1.40f);
+                if (proposedWage > maxAcceptableWage)
+                {
+                    feedbackTxt.text = $"<color=#E74C3C>{clubName} Başkanı: 'Talep ettiğiniz €{proposedWage:N0} maaş kulübümüzün maaş dengesini aşıyor! En fazla €{maxAcceptableWage:N0} verebiliriz.'</color>";
+                    return;
+                }
+
+                int totalYears = currentYears + addedYears;
+                p.CurrentContract.WeeklyWage = proposedWage;
+                p.CurrentContract.YearsRemaining = totalYears;
+                p.Happiness = Mathf.Clamp(p.Happiness + 25f, 0f, 100f);
+
+                AgencyManager.Instance.LogActivity($"ZAM ANLAŞMASI: Müşteriniz {p.Name}, {clubName} kulübü ile sözleşmesini yeniledi (Yeni Maaş: €{proposedWage:N0}/hafta, Toplam Süre: {totalYears} Yıl). Oyuncu Morali: +25");
+
+                Destroy(overlay);
+                if (onComplete != null) onComplete();
+            });
+            SetRectTransform(btnSubmit.transform.parent, new Vector2(0.1f, 0.05f), new Vector2(0.9f, 0.95f), Vector2.zero, Vector2.zero);
+        }
+
         public void ShowSignNegotiation(Player p, System.Action onSignSuccess)
         {
             // Capacity check first!
