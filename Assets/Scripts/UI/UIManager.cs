@@ -2371,11 +2371,12 @@ namespace BehindTheScenesFootball.UI
             GameObject headerContainer = new GameObject("HeaderContainer", typeof(RectTransform));
             headerContainer.transform.SetParent(contentRt, false);
             LayoutElement headerLe = headerContainer.AddComponent<LayoutElement>();
-            headerLe.preferredHeight = 850f;
+            headerLe.preferredHeight = 320f;
+            headerLe.minHeight = 320f;
 
             GameObject faceObj = new GameObject("LargeMiniface");
             faceObj.transform.SetParent(headerContainer.transform, false);
-            SetRectTransform(faceObj, new Vector2(0.02f, 0.35f), new Vector2(0.28f, 0.95f), Vector2.zero, Vector2.zero);
+            SetRectTransform(faceObj, new Vector2(0.02f, 0.05f), new Vector2(0.28f, 0.95f), Vector2.zero, Vector2.zero);
             Image faceImg = faceObj.AddComponent<Image>();
             faceImg.sprite = GetMiniface(p);
             faceImg.preserveAspect = true;
@@ -2575,8 +2576,8 @@ namespace BehindTheScenesFootball.UI
             // Message Panel Box
             GameObject msgPanel = CreatePanelHelper(content, "MsgPanel", new Color(0.16f, 0.20f, 0.26f, 0.90f));
             LayoutElement msgLe = msgPanel.AddComponent<LayoutElement>();
-            msgLe.preferredHeight = 320f;
-            msgLe.minHeight = 320f;
+            msgLe.preferredHeight = 480f;
+            msgLe.minHeight = 480f;
 
             Outline msgOutline = msgPanel.AddComponent<Outline>();
             msgOutline.effectColor = new Color(0.95f, 0.77f, 0.06f, 0.5f); // Gold accent border
