@@ -28,6 +28,10 @@ public static class iOSBuildScript
         PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.iOS, "com.ektgames.perdearkasifutbol");
         Debug.Log("[iOSBuildScript] Set Bundle Identifier to: com.ektgames.perdearkasifutbol");
 
+        // Set and verify iOS Build Number
+        PlayerSettings.iOS.buildNumber = "4";
+        Debug.Log($"[iOSBuildScript] PlayerSettings.iOS.buildNumber: {PlayerSettings.iOS.buildNumber}");
+
         // Set AppIcon texture
         Texture2D appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AppIcon1024.png");
         if (appIcon != null)
