@@ -52,6 +52,7 @@ namespace BehindTheScenesFootball.Core
             }
         }
 
+        public int ScoutingCenterLevel = 1; // Scouting Center Upgrade Level (1 to 5)
         public List<Scout> HiredScouts = new List<Scout>();
         public List<string> PurchasedStoreItemIds = new List<string>();
 

@@ -23,24 +23,48 @@ namespace BehindTheScenesFootball.UI
         private readonly string[] engFirstNames = { "John", "James", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Charles", "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew", "Joshua" };
         private readonly string[] engLastNames = { "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia", "Rodriguez", "Wilson", "Martinez", "Anderson", "Taylor", "Thomas", "Hernandez", "Moore", "Martin", "Jackson", "Thompson", "White" };
 
+        private Text centerLevelTxt;
+        private GameObject btnUpgradeObj;
+
         public override void Initialize(UIManager manager, GameObject container)
         {
             base.Initialize(manager, container);
 
-            // 1. Staff Header Panel at the top (Y: 0.70f to 0.98f)
-            GameObject headerPanel = uiManager.CreatePanelHelper(panelContainer.transform, "StaffHeader", new Color(0.12f, 0.16f, 0.22f, 0.85f));
-            SetRectTransform(headerPanel, new Vector2(0.02f, 0.70f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero);
+            // 1. Upgrade Header Panel (Y: 0.83f to 0.98f)
+            GameObject upgradePanel = uiManager.CreatePanelHelper(panelContainer.transform, "UpgradeHeader", new Color(0.12f, 0.16f, 0.22f, 0.90f));
+            SetRectTransform(upgradePanel, new Vector2(0.02f, 0.83f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero);
 
-            Outline headerBorder = headerPanel.AddComponent<Outline>();
-            headerBorder.effectColor = uiManager.ColorAccent;
-            headerBorder.effectDistance = new Vector2(2f, 2f);
+            Outline upgradeBorder = upgradePanel.AddComponent<Outline>();
+            upgradeBorder.effectColor = uiManager.ColorAccent;
+            upgradeBorder.effectDistance = new Vector2(2f, 2f);
 
-            Text title = CreateText(headerPanel.transform, "Title", "GÖZLEMCİ MERKEZİ", 54, Color.white, TextAnchor.MiddleLeft);
-            SetRectTransform(title, new Vector2(0.05f, 0.50f), new Vector2(0.50f, 0.90f), Vector2.zero, Vector2.zero);
+            Text title = CreateText(upgradePanel.transform, "Title", "GÖZLEMCİ MERKEZİ", 50, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(title, new Vector2(0.04f, 0.50f), new Vector2(0.50f, 0.92f), Vector2.zero, Vector2.zero);
             title.fontStyle = FontStyle.Bold;
 
-            slotTxt = CreateText(headerPanel.transform, "Slots", "Gözlemciler: 0 / 3", 42, new Color(0.7f, 0.75f, 0.8f), TextAnchor.MiddleLeft);
-            SetRectTransform(slotTxt, new Vector2(0.05f, 0.10f), new Vector2(0.50f, 0.45f), Vector2.zero, Vector2.zero);
+            centerLevelTxt = CreateText(upgradePanel.transform, "CenterLevel", "Merkez Seviyesi: Sev 1", 38, new Color(46f/255f, 204f/255f, 113f/255f), TextAnchor.MiddleLeft);
+            SetRectTransform(centerLevelTxt, new Vector2(0.04f, 0.08f), new Vector2(0.50f, 0.48f), Vector2.zero, Vector2.zero);
+            centerLevelTxt.fontStyle = FontStyle.Bold;
+
+            // Upgrade Button
+            Text upgradeLabel = uiManager.CreateButtonHelper(upgradePanel.transform, "BtnUpgrade", "MERKEZİ GELİŞTİR", uiManager.ColorGreen, Color.white, () => {
+                UpgradeScoutingCenter();
+            });
+            btnUpgradeObj = upgradeLabel.transform.parent.gameObject;
+            SetRectTransform(btnUpgradeObj, new Vector2(0.52f, 0.12f), new Vector2(0.96f, 0.88f), Vector2.zero, Vector2.zero);
+            upgradeLabel.fontSize = 34;
+            upgradeLabel.fontStyle = FontStyle.Bold;
+
+            // 2. Staff Hiring Header Panel (Y: 0.68f to 0.81f)
+            GameObject headerPanel = uiManager.CreatePanelHelper(panelContainer.transform, "StaffHeader", new Color(0.14f, 0.18f, 0.24f, 0.85f));
+            SetRectTransform(headerPanel, new Vector2(0.02f, 0.68f), new Vector2(0.98f, 0.81f), Vector2.zero, Vector2.zero);
+
+            Outline headerBorder = headerPanel.AddComponent<Outline>();
+            headerBorder.effectColor = new Color(1f, 1f, 1f, 0.1f);
+            headerBorder.effectDistance = new Vector2(1f, 1f);
+
+            slotTxt = CreateText(headerPanel.transform, "Slots", "Gözlemciler: 0 / 3", 38, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(slotTxt, new Vector2(0.04f, 0.10f), new Vector2(0.50f, 0.90f), Vector2.zero, Vector2.zero);
             slotTxt.fontStyle = FontStyle.Bold;
 
             // Hire Button
@@ -48,29 +72,81 @@ namespace BehindTheScenesFootball.UI
                 HireScout();
             });
             btnHireObj = hireLabel.transform.parent.gameObject;
-            SetRectTransform(btnHireObj, new Vector2(0.52f, 0.15f), new Vector2(0.95f, 0.85f), Vector2.zero, Vector2.zero);
-            hireLabel.fontSize = 36;
+            SetRectTransform(btnHireObj, new Vector2(0.52f, 0.12f), new Vector2(0.96f, 0.88f), Vector2.zero, Vector2.zero);
+            hireLabel.fontSize = 34;
             hireLabel.fontStyle = FontStyle.Bold;
 
-            // 2. Scroll View (Y: 0.02f to 0.68f)
+            // 3. Scroll View (Y: 0.02f to 0.66f)
             GameObject scrollView = uiManager.CreateScrollViewHelper(panelContainer.transform, "TalentsScroll", out listContent);
-            SetRectTransform(scrollView, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.68f), Vector2.zero, Vector2.zero);
+            SetRectTransform(scrollView, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.66f), Vector2.zero, Vector2.zero);
+        }
+
+        private void UpgradeScoutingCenter()
+        {
+            Agency agency = AgencyManager.Instance.ActiveAgency;
+            if (agency.ScoutingCenterLevel >= 5) return;
+
+            long cost = GetScoutingCenterUpgradeCost(agency.ScoutingCenterLevel);
+            if (agency.Balance < cost)
+            {
+                AgencyManager.Instance.LogActivity($"İptal: Gözlemci Merkezi geliştirmesi için €{cost:N0} bütçe gerekiyor.");
+                uiManager.ShowFeedbackPopup(BehindTheScenesFootball.Managers.LocalizationManager.Translate($"Yetersiz Bütçe: €{cost:N0} bütçeniz bulunmamaktadır!"));
+                return;
+            }
+
+            agency.Balance -= cost;
+            agency.ScoutingCenterLevel++;
+            candidateScout = null; // Generate new candidate corresponding to updated ScoutingCenterLevel!
+            AgencyManager.Instance.LogActivity($"GÖZLEMCİ MERKEZİ GELİŞTİRİLDİ: Seviye {agency.ScoutingCenterLevel} yapıldı! (Bütçe: -€{cost:N0})");
+            Refresh();
+        }
+
+        public static long GetScoutingCenterUpgradeCost(int currentLevel)
+        {
+            switch (currentLevel)
+            {
+                case 1: return 50000;
+                case 2: return 150000;
+                case 3: return 350000;
+                case 4: return 750000;
+                default: return 0;
+            }
         }
 
         public override void Refresh()
         {
             Agency agency = AgencyManager.Instance.ActiveAgency;
             int scoutCount = agency.HiredScouts.Count;
+            bool isEnglish = BehindTheScenesFootball.Managers.LocalizationManager.CurrentLanguage == "EN";
+
+            // Update Center Level Header & Upgrade Button
+            centerLevelTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"Merkez Seviyesi: Sev {agency.ScoutingCenterLevel}");
+            Text upgradeLabel = btnUpgradeObj.GetComponentInChildren<Text>();
+            if (agency.ScoutingCenterLevel >= 5)
+            {
+                if (upgradeLabel != null) upgradeLabel.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate("MAKSİMUM SEVİYE");
+                Image upImg = btnUpgradeObj.GetComponent<Image>();
+                if (upImg != null) upImg.color = uiManager.ColorGreyButton;
+            }
+            else
+            {
+                long upCost = GetScoutingCenterUpgradeCost(agency.ScoutingCenterLevel);
+                if (upgradeLabel != null)
+                {
+                    upgradeLabel.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"GELİŞTİR (Sev {agency.ScoutingCenterLevel + 1})\n€{upCost:N0}");
+                }
+                Image upImg = btnUpgradeObj.GetComponent<Image>();
+                if (upImg != null) upImg.color = uiManager.ColorGreen;
+            }
 
             if (scoutCount < 3)
             {
-                bool isEnglish = BehindTheScenesFootball.Managers.LocalizationManager.CurrentLanguage == "EN";
                 if (candidateScout == null)
                 {
                     string[] fNames = isEnglish ? engFirstNames : firstNames;
                     string[] lNames = isEnglish ? engLastNames : lastNames;
                     string candidateName = fNames[Random.Range(0, fNames.Length)] + " " + lNames[Random.Range(0, lNames.Length)];
-                    int candidateLevel = Random.Range(1, Mathf.Min(6, agency.Level + 1)); // Candidate scout level capped by agency level
+                    int candidateLevel = Mathf.Clamp(agency.ScoutingCenterLevel, 1, 5); // Candidate scout level matches ScoutingCenterLevel!
                     candidateScout = new Scout(candidateName, candidateLevel);
                 }
                 else
@@ -204,10 +280,23 @@ namespace BehindTheScenesFootball.UI
             Agency agency = AgencyManager.Instance.ActiveAgency;
             if (agency.HiredScouts.Count >= 3 || candidateScout == null) return;
 
+            bool isEnglish = BehindTheScenesFootball.Managers.LocalizationManager.CurrentLanguage == "EN";
+            string firstName = candidateScout.Name.Split(' ')[0];
+            bool nameIsEnglish = System.Array.IndexOf(engFirstNames, firstName) >= 0;
+            bool nameIsTurkish = System.Array.IndexOf(firstNames, firstName) >= 0;
+
+            if ((isEnglish && !nameIsEnglish) || (!isEnglish && !nameIsTurkish))
+            {
+                string[] fNames = isEnglish ? engFirstNames : firstNames;
+                string[] lNames = isEnglish ? engLastNames : lastNames;
+                candidateScout.Name = fNames[Random.Range(0, fNames.Length)] + " " + lNames[Random.Range(0, lNames.Length)];
+            }
+
             long cost = GetRecruitmentCost(candidateScout.Level);
             if (agency.Balance < cost)
             {
                 AgencyManager.Instance.LogActivity($"İşe Alım Başarısız: Yetersiz bütçe (Gereken: €{cost:N0}).");
+                uiManager.ShowFeedbackPopup(BehindTheScenesFootball.Managers.LocalizationManager.Translate($"Yetersiz Bütçe: €{cost:N0} bütçeniz bulunmamaktadır!"));
                 return;
             }
 
@@ -245,6 +334,21 @@ namespace BehindTheScenesFootball.UI
             }
         }
 
+        private void FireScout(Scout s)
+        {
+            if (s == null) return;
+            Agency agency = AgencyManager.Instance.ActiveAgency;
+            if (agency.HiredScouts.Contains(s))
+            {
+                agency.HiredScouts.Remove(s);
+                candidateScout = null; // Re-enable candidate scout generation
+                string logMsg = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"GÖZLEMCİ İŞTEN ÇIKARILDI: Gözlemci {s.Name} ile yollar ayrıldı.");
+                AgencyManager.Instance.LogActivity(logMsg);
+                uiManager.ShowFeedbackPopup(BehindTheScenesFootball.Managers.LocalizationManager.Translate($"Gözlemci {s.Name} işten çıkarıldı."));
+                Refresh();
+            }
+        }
+
         private void CreateScoutRow(Transform parent, Scout s)
         {
             GameObject row = uiManager.CreatePanelHelper(parent, "ScoutRow_" + s.Id, new Color(0.12f, 0.14f, 0.18f, 0.75f));
@@ -258,16 +362,16 @@ namespace BehindTheScenesFootball.UI
 
             // Left: Scout Info
             int wage = GetWeeklyWage(s.Level);
-            Text info = CreateText(row.transform, "Info", $"<b>{s.Name}</b>\nSeviye: {s.Level}/5  |  Maaş: €{wage:N0}/hf", 46, Color.white, TextAnchor.MiddleLeft);
-            SetRectTransform(info, new Vector2(0.03f, 0.1f), new Vector2(0.50f, 0.9f), Vector2.zero, Vector2.zero);
+            Text info = CreateText(row.transform, "Info", $"<b>{s.Name}</b>\nSeviye: {s.Level}/5\nMaaş: €{wage:N0}/hf", 42, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(info, new Vector2(0.03f, 0.1f), new Vector2(0.42f, 0.9f), Vector2.zero, Vector2.zero);
             info.fontStyle = FontStyle.Bold;
 
-            // Mid/Right: Status & Actions
+            // Mid: Status & Actions
             if (string.IsNullOrEmpty(s.AssignedLeague))
             {
                 // Status
-                Text status = CreateText(row.transform, "Status", "BOŞTA", 46, new Color(0.7f, 0.75f, 0.8f), TextAnchor.MiddleCenter);
-                SetRectTransform(status, new Vector2(0.52f, 0.55f), new Vector2(0.75f, 0.9f), Vector2.zero, Vector2.zero);
+                Text status = CreateText(row.transform, "Status", "BOŞTA", 42, new Color(0.7f, 0.75f, 0.8f), TextAnchor.MiddleCenter);
+                SetRectTransform(status, new Vector2(0.44f, 0.55f), new Vector2(0.78f, 0.9f), Vector2.zero, Vector2.zero);
                 status.fontStyle = FontStyle.Bold;
 
                 // Action
@@ -276,20 +380,20 @@ namespace BehindTheScenesFootball.UI
                     currentViewMode = 1; // League selection
                     Refresh();
                 });
-                SetRectTransform(btnAction.transform.parent, new Vector2(0.52f, 0.15f), new Vector2(0.97f, 0.50f), Vector2.zero, Vector2.zero);
-                btnAction.fontSize = 38;
+                SetRectTransform(btnAction.transform.parent, new Vector2(0.44f, 0.12f), new Vector2(0.78f, 0.48f), Vector2.zero, Vector2.zero);
+                btnAction.fontSize = 34;
                 btnAction.fontStyle = FontStyle.Bold;
             }
             else if (s.WeeksRemaining > 0)
             {
                 // Status
-                Text status = CreateText(row.transform, "Status", $"ARAMA YAPIYOR\n({s.AssignedLeague})", 38, uiManager.ColorAccent, TextAnchor.MiddleCenter);
-                SetRectTransform(status, new Vector2(0.52f, 0.55f), new Vector2(0.97f, 0.9f), Vector2.zero, Vector2.zero);
+                Text status = CreateText(row.transform, "Status", $"ARAMA YAPIYOR\n({s.AssignedLeague})", 34, uiManager.ColorAccent, TextAnchor.MiddleCenter);
+                SetRectTransform(status, new Vector2(0.44f, 0.55f), new Vector2(0.78f, 0.9f), Vector2.zero, Vector2.zero);
                 status.fontStyle = FontStyle.Bold;
 
                 // Time progress
-                Text time = CreateText(row.transform, "Time", $"{s.WeeksRemaining} HAFTA KALDI", 44, new Color(241f/255f, 196f/255f, 15f/255f), TextAnchor.MiddleCenter);
-                SetRectTransform(time, new Vector2(0.52f, 0.15f), new Vector2(0.97f, 0.50f), Vector2.zero, Vector2.zero);
+                Text time = CreateText(row.transform, "Time", $"{s.WeeksRemaining} HAFTA KALDI", 38, new Color(241f/255f, 196f/255f, 15f/255f), TextAnchor.MiddleCenter);
+                SetRectTransform(time, new Vector2(0.44f, 0.12f), new Vector2(0.78f, 0.48f), Vector2.zero, Vector2.zero);
                 time.fontStyle = FontStyle.Bold;
             }
             else
@@ -300,8 +404,8 @@ namespace BehindTheScenesFootball.UI
                     currentViewMode = 2; // Report listing
                     Refresh();
                 });
-                SetRectTransform(btnAction.transform.parent, new Vector2(0.52f, 0.55f), new Vector2(0.97f, 0.90f), Vector2.zero, Vector2.zero);
-                btnAction.fontSize = 42;
+                SetRectTransform(btnAction.transform.parent, new Vector2(0.44f, 0.55f), new Vector2(0.78f, 0.90f), Vector2.zero, Vector2.zero);
+                btnAction.fontSize = 38;
                 btnAction.fontStyle = FontStyle.Bold;
 
                 // Redeploy button
@@ -310,10 +414,18 @@ namespace BehindTheScenesFootball.UI
                     currentViewMode = 1; // League selection
                     Refresh();
                 });
-                SetRectTransform(btnRedeploy.transform.parent, new Vector2(0.52f, 0.15f), new Vector2(0.97f, 0.50f), Vector2.zero, Vector2.zero);
-                btnRedeploy.fontSize = 38;
+                SetRectTransform(btnRedeploy.transform.parent, new Vector2(0.44f, 0.12f), new Vector2(0.78f, 0.48f), Vector2.zero, Vector2.zero);
+                btnRedeploy.fontSize = 34;
                 btnRedeploy.fontStyle = FontStyle.Bold;
             }
+
+            // Right: Red Dismiss / Fire Button
+            Text btnFireLabel = uiManager.CreateButtonHelper(row.transform, "BtnFireScout", "KOV", uiManager.ColorRed, Color.white, () => {
+                FireScout(s);
+            });
+            SetRectTransform(btnFireLabel.transform.parent, new Vector2(0.80f, 0.15f), new Vector2(0.97f, 0.85f), Vector2.zero, Vector2.zero);
+            btnFireLabel.fontSize = 36;
+            btnFireLabel.fontStyle = FontStyle.Bold;
         }
 
         private void CreateLeagueRow(Transform parent, League l)

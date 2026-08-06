@@ -86,16 +86,40 @@ namespace BehindTheScenesFootball.Managers
 
         private void GenerateMockSponsors()
         {
-            Sponsors.Add(new Sponsor("Nike", 2500, 3, 75));
-            Sponsors.Add(new Sponsor("Adidas", 2800, 3, 78));
-            Sponsors.Add(new Sponsor("Puma", 1800, 2, 70));
-            Sponsors.Add(new Sponsor("Red Bull", 4000, 4, 82));
-            Sponsors.Add(new Sponsor("Turkish Airlines", 5000, 5, 85));
-            Sponsors.Add(new Sponsor("EA Sports", 3500, 3, 80));
-            Sponsors.Add(new Sponsor("Rolex", 8000, 4, 88));
-            Sponsors.Add(new Sponsor("Local Kebab", 200, 1, 45));
-            Sponsors.Add(new Sponsor("Castrol", 1000, 2, 60));
-            Sponsors.Add(new Sponsor("Heineken", 3000, 3, 75));
+            // Tier 5: Elite World Brands (88-99 OVR / Superstar Players) - €35K - €85K/week
+            Sponsors.Add(new Sponsor("Crown Chrono", 85000, 5, 90, 99));
+            Sponsors.Add(new Sponsor("Vanguard Airways", 70000, 4, 89, 99));
+            Sponsors.Add(new Sponsor("AeroTech Global", 65000, 4, 88, 99));
+            Sponsors.Add(new Sponsor("Titan Sportswear", 60000, 3, 88, 99));
+            Sponsors.Add(new Sponsor("Apex Energy", 55000, 3, 88, 99));
+
+            // Tier 4: Major International Brands (80-87 OVR / Star Players) - €15K - €28K/week
+            Sponsors.Add(new Sponsor("Skyline Aviation", 28000, 3, 84, 87));
+            Sponsors.Add(new Sponsor("Volt Hydration", 22000, 4, 82, 87));
+            Sponsors.Add(new Sponsor("Strikeforce Pro", 20000, 3, 81, 87));
+            Sponsors.Add(new Sponsor("Velocity Gear", 18000, 3, 80, 87));
+            Sponsors.Add(new Sponsor("Prime Audio", 15000, 3, 80, 87));
+
+            // Tier 3: Regional Professional Brands (72-79 OVR / First Team Players) - €4.5K - €8K/week
+            Sponsors.Add(new Sponsor("Metro Motors", 8000, 3, 75, 79));
+            Sponsors.Add(new Sponsor("Peak Nutrition", 6500, 3, 74, 79));
+            Sponsors.Add(new Sponsor("Breeze Beverages", 5500, 2, 73, 79));
+            Sponsors.Add(new Sponsor("Urban Kicks", 5000, 2, 72, 79));
+            Sponsors.Add(new Sponsor("ProFit Athletics", 4500, 2, 72, 79));
+
+            // Tier 2: Mid-Tier Local Brands (62-71 OVR / Rotation Players) - €900 - €2K/week
+            Sponsors.Add(new Sponsor("Green Turf Gear", 2000, 2, 65, 71));
+            Sponsors.Add(new Sponsor("Pulse Fitness", 1800, 2, 64, 71));
+            Sponsors.Add(new Sponsor("Town Auto", 1500, 2, 62, 71));
+            Sponsors.Add(new Sponsor("Express Pizza", 1200, 2, 62, 71));
+            Sponsors.Add(new Sponsor("Neighborhood Market", 900, 1, 60, 71));
+
+            // Tier 1: Grassroots / Local Brands (<62 OVR / Young Players) - €180 - €350/week
+            Sponsors.Add(new Sponsor("Village Diner", 350, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Local Kebab", 300, 1, 40, 61));
+            Sponsors.Add(new Sponsor("City Bakery", 250, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Parkside Supply", 200, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Corner Cafe", 180, 1, 40, 61));
         }
 
         private void GenerateSimulationLeagues()
@@ -203,7 +227,7 @@ namespace BehindTheScenesFootball.Managers
             foreach (var pos in positions)
             {
                 string nationality;
-                string fullName = GenerateFictionalPlayerName(country, out nationality);
+                string fullName = GenerateFictionalPlayerName(country, tier, out nationality);
 
                 int age = UnityEngine.Random.Range(17, 35);
                 
@@ -371,14 +395,23 @@ namespace BehindTheScenesFootball.Managers
             return p;
         }
 
-        public string GenerateFictionalPlayerName(string country, out string selectedCountry)
+        public string GenerateFictionalPlayerName(string country, int tier, out string selectedCountry)
         {
             selectedCountry = country;
-            // 30% chance for foreign signing diversity
-            if (UnityEngine.Random.value < 0.3f)
+
+            float foreignChance = 0f;
+            if (tier == 1) foreignChance = 0.20f;      // 1. Ligler: %80 Yerel / %20 Yabancı
+            else if (tier == 2) foreignChance = 0.10f; // 2. Ligler: %90 Yerel / %10 Yabancı
+            else foreignChance = 0.00f;                // 3. Ligler: %100 Yerel / %0 Yabancı
+
+            if (UnityEngine.Random.value < foreignChance)
             {
-                string[] allCountries = { "Türkiye", "İngiltere", "İspanya", "Fransa", "Almanya", "İtalya", "Portekiz", "Hollanda", "Rusya", "Belçika", "Brezilya" };
-                selectedCountry = allCountries[UnityEngine.Random.Range(0, allCountries.Length)];
+                List<string> foreignPool = new List<string> { "Türkiye", "İngiltere", "İspanya", "Fransa", "Almanya", "İtalya", "Portekiz", "Hollanda", "Rusya", "Belçika", "Brezilya" };
+                foreignPool.Remove(country);
+                if (foreignPool.Count > 0)
+                {
+                    selectedCountry = foreignPool[UnityEngine.Random.Range(0, foreignPool.Count)];
+                }
             }
 
             string first;
@@ -438,6 +471,11 @@ namespace BehindTheScenesFootball.Managers
             }
 
             return first + " " + last;
+        }
+
+        public string GenerateFictionalPlayerName(string country, out string selectedCountry)
+        {
+            return GenerateFictionalPlayerName(country, 1, out selectedCountry);
         }
 
         public Player GetPlayerById(string id)

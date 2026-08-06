@@ -20,6 +20,7 @@ namespace BehindTheScenesFootball.UI
         public Color ColorGreen => colorGreen;
         public Color ColorRed => colorRed;
         public Color ColorGold => colorGold;
+        public Color ColorGreyButton => colorGreyButton;
 
         // UI Colors (Modern Flat / Dark Theme / Glassmorphism)
         private Color colorBg = new Color(11f / 255f, 12f / 255f, 16f / 255f, 1f); // Deep dark background
@@ -35,6 +36,7 @@ namespace BehindTheScenesFootball.UI
 
         // Header Texts
         private Text moneyText;
+        private Text seasonText;
         private Text weekText;
         private Text transferSeasonText;
         private Text managerNameText;
@@ -504,6 +506,10 @@ namespace BehindTheScenesFootball.UI
             managerNameText.text = $"★ {agency.ManagerName}";
             agencyNameText.text = $"★ {agency.Name.Replace("Menajerlik", "").Replace("Ajansı", "").Trim()}";
 
+            int seasonNum = SimulationEngine.Instance.CurrentYear - 2026 + 1;
+            string rawSeason = $"🏆 Sezon {seasonNum}";
+            seasonText.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate(rawSeason);
+
             string rawWeek = $"⌛ Hafta {SimulationEngine.Instance.CurrentWeek}";
             weekText.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate(rawWeek);
 
@@ -823,16 +829,20 @@ namespace BehindTheScenesFootball.UI
             SetRectTransform(header, new Vector2(0f, 0.79f), new Vector2(1f, 0.98f), new Vector2(20f, 0f), new Vector2(-20f, -20f));
 
             // Grid Stats inside header with standard build-safe unicode icons (Enlarged and spaced out!)
-            moneyText = CreateText(header.transform, "MoneyText", "€ 0", 54, new Color(46f/255f, 204f/255f, 113f/255f), TextAnchor.MiddleLeft);
-            SetRectTransform(moneyText, new Vector2(0.04f, 0.68f), new Vector2(0.48f, 0.95f), Vector2.zero, Vector2.zero);
+            moneyText = CreateText(header.transform, "MoneyText", "€ 0", 44, new Color(46f/255f, 204f/255f, 113f/255f), TextAnchor.MiddleLeft);
+            SetRectTransform(moneyText, new Vector2(0.04f, 0.76f), new Vector2(0.48f, 0.96f), Vector2.zero, Vector2.zero);
             moneyText.fontStyle = FontStyle.Bold;
 
-            weekText = CreateText(header.transform, "WeekText", "⌛ Hafta 1", 48, Color.white, TextAnchor.MiddleLeft);
-            SetRectTransform(weekText, new Vector2(0.04f, 0.36f), new Vector2(0.48f, 0.63f), Vector2.zero, Vector2.zero);
+            seasonText = CreateText(header.transform, "SeasonText", "🏆 Sezon 1", 42, new Color(241f/255f, 196f/255f, 15f/255f), TextAnchor.MiddleLeft);
+            SetRectTransform(seasonText, new Vector2(0.04f, 0.51f), new Vector2(0.48f, 0.71f), Vector2.zero, Vector2.zero);
+            seasonText.fontStyle = FontStyle.Bold;
+
+            weekText = CreateText(header.transform, "WeekText", "⌛ Hafta 1", 42, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(weekText, new Vector2(0.04f, 0.26f), new Vector2(0.48f, 0.46f), Vector2.zero, Vector2.zero);
             weekText.fontStyle = FontStyle.Bold;
 
-            transferSeasonText = CreateText(header.transform, "TransferText", "⚽ Transfer: Kapalı", 48, Color.white, TextAnchor.MiddleLeft);
-            SetRectTransform(transferSeasonText, new Vector2(0.04f, 0.04f), new Vector2(0.48f, 0.31f), Vector2.zero, Vector2.zero);
+            transferSeasonText = CreateText(header.transform, "TransferText", "⚽ Transfer: Kapalı", 42, Color.white, TextAnchor.MiddleLeft);
+            SetRectTransform(transferSeasonText, new Vector2(0.04f, 0.01f), new Vector2(0.48f, 0.21f), Vector2.zero, Vector2.zero);
             transferSeasonText.fontStyle = FontStyle.Bold;
 
             managerNameText = CreateText(header.transform, "ManagerText", "★ Kasey Sung", 48, Color.white, TextAnchor.MiddleLeft);
@@ -2008,6 +2018,11 @@ namespace BehindTheScenesFootball.UI
 
             // 8. Market Value
             CreateDetailLabel(cardObj.transform, "LblValue", $"Piyasa Değeri: <color=#F1C40F><b>{val}</b></color>", new Vector2(0.08f, curY - labelHeight), new Vector2(0.92f, curY));
+            curY -= stepY;
+
+            // 9. Season Performance Stats (Live Stats)
+            string statsStr = $"Performans: <color=#58D68D><b>{p.Appearances} Maç  |  {p.Goals} Gol  |  {p.Assists} Asist  |  {p.AverageRating:0.0} Ort.</b></color>";
+            CreateDetailLabel(cardObj.transform, "LblSeasonStats", statsStr, new Vector2(0.08f, curY - labelHeight), new Vector2(0.92f, curY));
             curY -= stepY;
 
             // 9. Transfer Status (if present)
@@ -3991,11 +4006,46 @@ namespace BehindTheScenesFootball.UI
         }
 
         [System.Serializable]
+        public class FullPlayerSaveData
+        {
+            public string Id;
+            public string Name;
+            public int Age;
+            public PlayerPosition Position;
+            public int OVR;
+            public int POT;
+            public string Nationality;
+            public int MarketValue;
+            public bool IsAgencyClient;
+            public bool HasAgent;
+            public float CustomTransferCommissionPercent = 0.10f;
+            public float CustomWageCommissionPercent = 0.05f;
+            public float CustomSponsorCommissionPercent = 0.10f;
+            public int AgencyContractRemainingWeeks;
+            public int Appearances;
+            public int Goals;
+            public int Assists;
+            public int CleanSheets;
+            public float MatchRatingSum;
+            public float Form;
+            public float Happiness;
+            public string ClubId;
+            public string ClubName;
+            public int WeeklyWage;
+            public int ContractYearsRemaining;
+            public int ReleaseClause;
+            public string SquadRole;
+            public string ActiveSponsorName;
+        }
+
+        [System.Serializable]
         public class GameSaveData
         {
             public string AgencyJson;
             public int CurrentWeek;
+            public int CurrentYear;
             public List<ClubSaveData> ClubStandings;
+            public List<FullPlayerSaveData> SavedPlayers;
         }
 
         private InputField CreateInputFieldHelper(Transform parent, string name, string placeholderText, out GameObject fieldObj)
@@ -4042,31 +4092,37 @@ namespace BehindTheScenesFootball.UI
             mainMenuObj = CreatePanelHelper(parent, "MainMenuScreen", Color.clear);
             SetRectTransform(mainMenuObj, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            // 1. Menu Buttons Panel (Center of screen)
+            // 1. Menu Buttons Panel (Center of screen - Expanded vertical range to fit 5 buttons)
             menuButtonsPanel = CreatePanelHelper(mainMenuObj.transform, "MenuButtonsPanel", Color.clear);
-            SetRectTransform(menuButtonsPanel, new Vector2(0.15f, 0.20f), new Vector2(0.85f, 0.80f), Vector2.zero, Vector2.zero);
+            SetRectTransform(menuButtonsPanel, new Vector2(0.15f, 0.10f), new Vector2(0.85f, 0.88f), Vector2.zero, Vector2.zero);
 
             // Title inside Main Menu
-            Text gameTitleText = CreateText(menuButtonsPanel.transform, "GameTitleText", "PERDE ARKASI FUTBOL", 72, colorAccent, TextAnchor.MiddleCenter);
-            SetRectTransform(gameTitleText, new Vector2(0f, 0.80f), new Vector2(1f, 0.95f), Vector2.zero, Vector2.zero);
+            Text gameTitleText = CreateText(menuButtonsPanel.transform, "GameTitleText", "PERDE ARKASI FUTBOL", 68, colorAccent, TextAnchor.MiddleCenter);
+            SetRectTransform(gameTitleText, new Vector2(0f, 0.84f), new Vector2(1f, 0.98f), Vector2.zero, Vector2.zero);
             gameTitleText.fontStyle = FontStyle.Bold;
 
             Text btnNewGame = CreateButtonHelper(menuButtonsPanel.transform, "BtnNewGame", "YENİ OYUN", colorGreen, Color.white, () => ShowNewGameSetup());
-            SetRectTransform(btnNewGame.transform.parent, new Vector2(0f, 0.58f), new Vector2(1f, 0.72f), Vector2.zero, Vector2.zero);
-            btnNewGame.fontSize = 48;
+            SetRectTransform(btnNewGame.transform.parent, new Vector2(0f, 0.68f), new Vector2(1f, 0.80f), Vector2.zero, Vector2.zero);
+            btnNewGame.fontSize = 44;
             btnNewGame.fontStyle = FontStyle.Bold;
 
             Text btnLoadGame = CreateButtonHelper(menuButtonsPanel.transform, "BtnLoadGame", "KAYITLI OYUN YÜKLE", colorGreyButton, Color.white, () => {
                 ShowSaveSlotsPopup(false);
             });
-            SetRectTransform(btnLoadGame.transform.parent, new Vector2(0f, 0.40f), new Vector2(1f, 0.54f), Vector2.zero, Vector2.zero);
-            btnLoadGame.fontSize = 48;
+            SetRectTransform(btnLoadGame.transform.parent, new Vector2(0f, 0.52f), new Vector2(1f, 0.64f), Vector2.zero, Vector2.zero);
+            btnLoadGame.fontSize = 44;
             btnLoadGame.fontStyle = FontStyle.Bold;
 
             Text btnSettings = CreateButtonHelper(menuButtonsPanel.transform, "BtnSettings", "AYARLAR", colorGreyButton, Color.white, () => ShowSettingsScreen());
-            SetRectTransform(btnSettings.transform.parent, new Vector2(0f, 0.22f), new Vector2(1f, 0.36f), Vector2.zero, Vector2.zero);
-            btnSettings.fontSize = 48;
+            SetRectTransform(btnSettings.transform.parent, new Vector2(0f, 0.36f), new Vector2(1f, 0.48f), Vector2.zero, Vector2.zero);
+            btnSettings.fontSize = 44;
             btnSettings.fontStyle = FontStyle.Bold;
+
+            // HOW TO PLAY BUTTON (NASIL OYNANIR?) - Positioned directly above EXIT button
+            Text btnHowToPlay = CreateButtonHelper(menuButtonsPanel.transform, "BtnHowToPlay", "NASIL OYNANIR?", colorGold, colorTextDark, () => ShowHowToPlayModal());
+            SetRectTransform(btnHowToPlay.transform.parent, new Vector2(0f, 0.20f), new Vector2(1f, 0.32f), Vector2.zero, Vector2.zero);
+            btnHowToPlay.fontSize = 44;
+            btnHowToPlay.fontStyle = FontStyle.Bold;
 
             Text btnExit = CreateButtonHelper(menuButtonsPanel.transform, "BtnExit", "ÇIKIŞ", colorRed, Color.white, () => {
 #if UNITY_EDITOR
@@ -4075,8 +4131,8 @@ namespace BehindTheScenesFootball.UI
                 Application.Quit();
 #endif
             });
-            SetRectTransform(btnExit.transform.parent, new Vector2(0f, 0.04f), new Vector2(1f, 0.18f), Vector2.zero, Vector2.zero);
-            btnExit.fontSize = 48;
+            SetRectTransform(btnExit.transform.parent, new Vector2(0f, 0.04f), new Vector2(1f, 0.16f), Vector2.zero, Vector2.zero);
+            btnExit.fontSize = 44;
             btnExit.fontStyle = FontStyle.Bold;
 
             // 2. New Game Setup Panel (Initially hidden)
@@ -4310,6 +4366,11 @@ namespace BehindTheScenesFootball.UI
             {
                 lt.UpdateLanguage();
             }
+            RefreshUI();
+            if (activeSubpanel != null)
+            {
+                activeSubpanel.Refresh();
+            }
         }
 
         public void ShowFeedbackPopup(string message)
@@ -4329,6 +4390,184 @@ namespace BehindTheScenesFootball.UI
             SetRectTransform(btnOk.transform.parent, new Vector2(0.35f, 0.08f), new Vector2(0.65f, 0.30f), Vector2.zero, Vector2.zero);
             btnOk.fontSize = 32;
             btnOk.fontStyle = FontStyle.Bold;
+        }
+
+        public void ShowHowToPlayModal()
+        {
+            bool isEnglish = BehindTheScenesFootball.Managers.LocalizationManager.CurrentLanguage == "EN";
+
+            GameObject modal = CreatePanelHelper(mainCanvas.transform, "HowToPlayModal", new Color(0f, 0f, 0f, 0.92f));
+            SetRectTransform(modal, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            GameObject card = CreatePanelHelper(modal.transform, "GuideCard", new Color(0.12f, 0.16f, 0.22f, 0.98f));
+            SetRectTransform(card, new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.92f), Vector2.zero, Vector2.zero);
+
+            Outline border = card.AddComponent<Outline>();
+            border.effectColor = colorAccent;
+            border.effectDistance = new Vector2(2f, 2f);
+
+            // Title
+            string titleStr = isEnglish ? "📖 HOW TO PLAY? - FOOTBALL AGENT GUIDE" : "📖 NASIL OYNANIR? - MENAJERLİK REHBERİ";
+            Text titleText = CreateText(card.transform, "GuideTitle", titleStr, 52, Color.white, TextAnchor.MiddleCenter);
+            SetRectTransform(titleText, new Vector2(0.04f, 0.91f), new Vector2(0.96f, 0.98f), Vector2.zero, Vector2.zero);
+            titleText.fontStyle = FontStyle.Bold;
+
+            // Scroll View for Guide Content
+            Transform guideContent;
+            GameObject scrollView = CreateScrollViewHelper(card.transform, "GuideScroll", out guideContent);
+            SetRectTransform(scrollView, new Vector2(0.04f, 0.14f), new Vector2(0.96f, 0.89f), Vector2.zero, Vector2.zero);
+
+            GameObject textPanel = CreatePanelHelper(guideContent, "TextPanel", Color.clear);
+            LayoutElement le = textPanel.AddComponent<LayoutElement>();
+            le.minHeight = 3200f;
+            le.preferredHeight = 3200f;
+
+            string guideText = isEnglish ? GetEnglishGuideText() : GetTurkishGuideText();
+
+            Text bodyText = CreateText(textPanel.transform, "BodyText", guideText, 38, new Color(0.92f, 0.95f, 0.98f), TextAnchor.UpperLeft);
+            SetRectTransform(bodyText, Vector2.zero, Vector2.one, new Vector2(20f, 10f), new Vector2(-20f, -10f));
+            bodyText.fontStyle = FontStyle.Normal;
+            bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            bodyText.verticalOverflow = VerticalWrapMode.Overflow;
+
+            // Close Button
+            string closeStr = isEnglish ? "CLOSE GUIDE" : "REHBERİ KAPAT";
+            Text btnClose = CreateButtonHelper(card.transform, "BtnCloseGuide", BehindTheScenesFootball.Managers.LocalizationManager.Translate("REHBERİ KAPAT"), colorGreen, Color.white, () => Destroy(modal));
+            SetRectTransform(btnClose.transform.parent, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.11f), Vector2.zero, Vector2.zero);
+            btnClose.fontSize = 40;
+            btnClose.fontStyle = FontStyle.Bold;
+        }
+
+        private string GetTurkishGuideText()
+        {
+            return 
+@"<b>⚽ PERDE ARKASI FUTBOL - DETAYLI OYUN VE MENAJERLİK REHBERİ</b>
+
+Hoş geldiniz! Bu rehber, futbol temsilciliği ve menajerlik dünyasına ilk kez adım atan bir oyuncunun oyunu eksiksiz bir şekilde öğrenmesi için adım adım hazırlanmıştır.
+
+--------------------------------------------------
+<b>1. OYUNUN AMACI VE MENAJERLİK ROLÜNÜZ</b>
+• Oyunda kendi Menajerlik Ajansınızın (Şirketinizin) kurucusu ve liderisiniz.
+• Temel amacınız: Dünyanın dört bir yanından yetenekli genç futbolcuları (Wonderkid) ve yıldız isimleri portföyünüze katmak, onların kariyerlerini doğru kulüplerde yönlendirmek, büyük transfer ve sponsorluk anlaşmaları imzalayarak Ajans İtibarınızı (Seviye 1'den 5'e) ve Finansal Bütçenizi zirveye taşımaktır.
+
+--------------------------------------------------
+<b>2. ANA EKRAN VE ZAMAN İLERLEMESİ (HAFTA / SEZON)</b>
+• <b>Üst Bilgi Paneli:</b> Ekranın üst kısmında Kasa Bütçeniz (€), Şirket Seviyeniz (1-5), İtibar Puanınız (0-100), Bulunduğunuz Sezon (örn. Sezon 1) ve Hafta (⌛ Hafta 1-34) canlı olarak takip edilir.
+• <b>'SONRAKİ HAFTA' Butonu:</b> Ana ekranda bu butona bastığınızda zaman 1 hafta ilerler. Tüm liglerdeki (Türkiye, İngiltere, İspanya, Rusya vb.) haftalık lig maçları simüle edilir, futbolcularınız maça çıkar, performans gösterir (Gol, Asist, Rating) ve ajansınıza haberler/sponsorluk teklifleri düşer.
+
+--------------------------------------------------
+<b>3. MÜŞTERİLERİM VE OYUNCU KARİYER YÖNETİMİ</b>
+• Ajansınızın temsil ettiği tüm futbolcular <b>'Müşterilerim'</b> panelinde listelenir.
+• <b>Oyuncu Detay Kartı:</b> Bir oyuncuya tıkladığınızda oyuncunun Yaş, Mevki (GK: Kaleci, DEF: Defans, MID: Orta Saha, FWD: Forvet), GEN (OVR: Mevcut Güç), POT (Potansiyel Güç), Piyasa Değeri, Kadro Rolü (Yıldız, Önemli, İlk 11) ve <b>Canlı Sezon İstatistiklerini (Maç, Gol, Asist, Ort. Puan)</b> detaylıca görebilirsiniz.
+• <b>Temsilcilik Pazarlığı:</b> Müşterilerinizle sözleşme yenileyerek 3 temel komisyon oranınızı belirlersiniz:
+  - <b>Transfer Komisyonu (%):</b> Oyuncunuz transfer olduğunda bonservisten ajansınıza aktarılan pay.
+  - <b>Maaş Komisyonu (%):</b> Oyuncunuzun haftalık maaşından ajansınıza kesilen komisyon.
+  - <b>Sponsorluk Komisyonu (%):</b> Oyuncunuzun sponsorluk anlaşmalarından ajansınıza aktarılan pay.
+
+--------------------------------------------------
+<b>4. GÖZLEMCİ MERKEZİ VE PERSONEL ÇALIŞTIRMA</b>
+• <b>Gözlemci Merkezi Geliştirme:</b> 'Gözlemci Merkezi' panelinin en üstünde merkezinizi bütçenizle Seviye 1'den Seviye 5'e geliştirebilirsiniz (Sev 2: €50K, Sev 3: €150K, Sev 4: €350K, Sev 5: €750K).
+• <b>Gözlemci İşe Alımı:</b> Gözlemci Merkezi Seviyeniz yükseldikçe daha üst seviyede yetenekli gözlemciler işe alabilirsiniz.
+• <b>Lige Gönderme:</b> İşe aldığınız gözlemcileri istediğiniz liglere (İngiltere 1. Ligi, Rusya 1. Ligi vb.) 4 haftalık araştırmaya gönderebilirsiniz. 4 hafta sonunda gözlemci size potansiyelli futbolcular keşfeder.
+• <b>İşten Çıkarma (KOV):</b> Kadronuzdaki istemediğiniz bir gözlemciyi yanındaki kırmızı <b>'KOV'</b> butonuna basarak anında işten çıkarabilirsiniz.
+
+--------------------------------------------------
+<b>5. TRANSFERLER VE SÖZLEŞME PAZARLIKLARI</b>
+• <b>Transfer Sezonu:</b> Yılın belirli haftalarında transfer sezonu açılır (Serbest oyuncular için her zaman açıktır).
+• <b>Gelen Teklifler:</b> Kulüpler ajans müşterilerinize bonservis ve maaş teklifleri sunar. Teklif geldiğinde Gelen Kutunuza mail düşer.
+• <b>Pazarlık:</b> Teklifleri doğrudan kabul edebilir, pazarlığa oturup kulüplerden daha yüksek bonservis ve maaş talep edebilir veya teklifi reddedebilirsiniz. Transfer tamamlandığında ajansınız İmza Primi ve Komisyon kazanır.
+
+--------------------------------------------------
+<b>6. SPONSORLUK ANLAŞMALARI VE MARKALAR</b>
+• <b>Sponsorluk Şartı:</b> Oyuncularınız lig maçlarında yüksek performans gösterdikçe (Rating 6.4+ ve gol/asist katılımı) markalardan sponsorluk teklifleri almaya başlar.
+• <b>GEN (OVR) Kademeleri:</b>
+  - <b>Tier 5 (88-99 GEN):</b> Crown Chrono, Vanguard Airways, AeroTech Global gibi dünya devleri (Haftalık €35.000 - €85.000 sponsorluk payı).
+  - <b>Tier 4 (80-87 GEN):</b> Skyline Aviation, Volt Hydration, Velocity Gear (Haftalık €15.000 - €28.000).
+  - <b>Tier 3 (72-79 GEN):</b> Metro Motors, Peak Nutrition, Breeze Beverages (Haftalık €4.500 - €8.000).
+  - <b>Tier 2 (62-71 GEN):</b> Green Turf Gear, Express Pizza, Town Auto (Haftalık €900 - €2.000).
+  - <b>Tier 1 (<62 GEN):</b> Yerel Kebap Salonu, Şehir Fırını, Köşe Kafe (Haftalık €180 - €350).
+
+--------------------------------------------------
+<b>7. GELEN KUTUSU, MEDYA VE ETKİNLİKLER</b>
+• <b>Gelen Kutusu (Inbox):</b> Oyuncularınızın özel istekleri (Özel antrenör talebi, maaş zammı isteği, forma garantisi) ve gelen mailler burada toplanır. Cevapsız kalan talepler oyuncu moralini düşürebilir.
+• <b>Sosyal Medya Akışı:</b> Futbol dünyasındaki sıcak gelişmeleri, taraftar tepkilerini ve tamamlanan dev sponsorlukları canlı sosyal medya akışından takip edebilirsiniz.
+
+--------------------------------------------------
+<b>8. MAĞAZA VE AJANS İTİBARI</b>
+• <b>Mağaza (Store):</b> Kasa bütçenizle Lüks Ajans Ofisi, Özel Jet, Gelişmiş Analiz Yazılımları satın alarak ajansınızın İtibar Puanını ve Şirket Seviyesini yükseltebilirsiniz. High-level ajanslar oyuncularla daha kolay temsilcilik anlaşması yapar.
+
+--------------------------------------------------
+<b>İPUÇLARI:</b>
+1. Genç ve potansiyeli yüksek (POT 80+) oyuncuları erken yaşta ajansınıza katın.
+2. Gözlemci merkezinizi geliştirerek dünyadaki keşfedilmemiş cevherleri ilk siz bulun.
+3. Oyuncularınızın moralini ve performansını yüksek tutarak sponsorluk gelirlerinizi katlayın!
+
+İyi oyunlar dileriz!";
+        }
+
+        private string GetEnglishGuideText()
+        {
+            return 
+@"<b>⚽ BEHIND THE SCENES FOOTBALL - COMPLETE MANAGER & AGENT GUIDE</b>
+
+Welcome! This guide is designed step-by-step to provide a total understanding of every single game mechanic for players new to football agency management games.
+
+--------------------------------------------------
+<b>1. GOAL OF THE GAME & YOUR ROLE</b>
+• You are the founder and leader of your own Football Management Agency.
+• Main Goal: Sign promising young talents (Wonderkids) and established superstars to your roster, guide their club careers, negotiate high-value transfers and sponsorships to reach Agency Level 5 and build a legendary fortune.
+
+--------------------------------------------------
+<b>2. HOME SCREEN & TIME PROGRESSION (WEEK / SEASON)</b>
+• <b>Top Header Panel:</b> Displays Agency Balance (€), Agency Level (1-5), Reputation Points (0-100), Current Season (e.g. Season 1), and Week (⌛ Week 1-34).
+• <b>'NEXT WEEK' Button:</b> Pressing this button advances time by 1 week. Matches in all leagues (England, Spain, Turkey, Russia, Germany, etc.) are simulated, player performance stats (Goals, Assists, Rating) are recorded, and new mail/sponsorship offers arrive.
+
+--------------------------------------------------
+<b>3. MY PLAYERS & CLIENT MANAGEMENT</b>
+• Client Roster: All signed players appear under 'My Players'.
+• Player Card: Monitor Age, Position (GK, DEF, MID, FWD), OVR, POT, Market Value, Squad Role, and <b>Live Season Stats (Apps, Goals, Assists, Avg Rating)</b>.
+• Contract Negotiations: Negotiate 3 primary commission rates with your clients:
+  - <b>Transfer Commission (%):</b> Cut earned by your agency when the player is transferred.
+  - <b>Wage Commission (%):</b> Weekly percentage deducted from the player's club wage.
+  - <b>Sponsor Commission (%):</b> Percentage earned from the player's sponsorship deals.
+
+--------------------------------------------------
+<b>4. SCOUTING CENTER & STAFF MANAGEMENT</b>
+• <b>Center Upgrades:</b> Upgrade your Scouting Center at the top of the 'Talents' panel from Level 1 to Level 5 using agency funds (Lvl 2: €50K, Lvl 3: €150K, Lvl 4: €350K, Lvl 5: €750K).
+• <b>Hiring Scouts:</b> Higher Scouting Center levels allow hiring higher level candidate scouts.
+• <b>Deploying Scouts:</b> Assign hired scouts to 4-week missions in global leagues (England, Spain, Russia, Turkey, etc.). After 4 weeks, scouts deliver high-potential talent reports.
+• <b>Firing Scouts (FIRE):</b> Dismiss unwanted scouts anytime using the red <b>'FIRE'</b> button.
+
+--------------------------------------------------
+<b>5. TRANSFERS & CLUB NEGOTIATIONS</b>
+• <b>Transfer Windows:</b> Receive transfer offers from clubs for your clients. Accept, negotiate higher fees/wages, or reject. Successful transfers yield signing bonuses and transfer commissions.
+
+--------------------------------------------------
+<b>6. SPONSORSHIP DEALS & BRAND TIERS</b>
+• <b>Performance Requirement:</b> Players performing well in league matches (Rating 6.4+ with goals/assists) attract brand sponsorship offers.
+• <b>OVR Tier Structure:</b>
+  - <b>Tier 5 (88-99 OVR):</b> World giants like Crown Chrono, Vanguard Airways, AeroTech Global (€35,000 - €85,000/week).
+  - <b>Tier 4 (80-87 OVR):</b> Skyline Aviation, Volt Hydration, Velocity Gear (€15,000 - €28,000/week).
+  - <b>Tier 3 (72-79 OVR):</b> Metro Motors, Peak Nutrition, Breeze Beverages (€4,500 - €8,000/week).
+  - <b>Tier 2 (62-71 OVR):</b> Green Turf Gear, Express Pizza, Town Auto (€900 - €2,000/week).
+  - <b>Tier 1 (<62 OVR):</b> Local Kebab, City Bakery, Corner Cafe (€180 - €350/week).
+
+--------------------------------------------------
+<b>7. INBOX, MEDIA & EVENTS</b>
+• <b>Inbox:</b> Client dialogue requests (Special Coach, Wage Increase, Team Role) and news arrive here. Resolving requests keeps client morale high.
+• <b>Social Feed:</b> Track live news, sponsorship signings, and fan reactions across the football world.
+
+--------------------------------------------------
+<b>8. STORE & AGENCY REPUTATION</b>
+• <b>Store:</b> Purchase luxury assets (Luxury Office, Private Jet, Advanced Analytics Software) to increase Agency Reputation and Level. Higher agency levels make signing star players easier.
+
+--------------------------------------------------
+<b>PRO TIPS:</b>
+1. Sign young players with high potential (POT 80+) early in their careers.
+2. Upgrade your Scouting Center to discover global wonderkids before competitor agencies.
+3. Keep client morale high to boost match ratings and unlock top-tier sponsorship deals!
+
+Enjoy the game!";
         }
 
         public void TogglePauseMenu(bool show)
@@ -4453,7 +4692,47 @@ namespace BehindTheScenesFootball.UI
             GameSaveData saveData = new GameSaveData();
             saveData.AgencyJson = JsonUtility.ToJson(agency);
             saveData.CurrentWeek = SimulationEngine.Instance.CurrentWeek;
+            saveData.CurrentYear = SimulationEngine.Instance.CurrentYear;
             saveData.ClubStandings = new List<ClubSaveData>();
+            saveData.SavedPlayers = new List<FullPlayerSaveData>();
+
+            // Save full player state across entire database
+            foreach (var p in DatabaseManager.Instance.Players)
+            {
+                if (p == null) continue;
+                FullPlayerSaveData fpsd = new FullPlayerSaveData
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Age = p.Age,
+                    Position = p.Position,
+                    OVR = p.OVR,
+                    POT = p.POT,
+                    Nationality = p.Nationality,
+                    MarketValue = p.MarketValue,
+                    IsAgencyClient = p.IsAgencyClient,
+                    HasAgent = p.HasAgent,
+                    CustomTransferCommissionPercent = p.CustomTransferCommissionPercent,
+                    CustomWageCommissionPercent = p.CustomWageCommissionPercent,
+                    CustomSponsorCommissionPercent = p.CustomSponsorCommissionPercent,
+                    AgencyContractRemainingWeeks = p.AgencyContractRemainingWeeks,
+                    Appearances = p.Appearances,
+                    Goals = p.Goals,
+                    Assists = p.Assists,
+                    CleanSheets = p.CleanSheets,
+                    MatchRatingSum = p.MatchRatingSum,
+                    Form = p.Form,
+                    Happiness = p.Happiness,
+                    SquadRole = p.SquadRole,
+                    ClubId = p.CurrentContract != null ? p.CurrentContract.ClubId : "",
+                    ClubName = p.CurrentContract != null ? p.CurrentContract.ClubName : "",
+                    WeeklyWage = p.CurrentContract != null ? p.CurrentContract.WeeklyWage : 0,
+                    ContractYearsRemaining = p.CurrentContract != null ? p.CurrentContract.DurationYears : 0,
+                    ReleaseClause = p.CurrentContract != null ? p.CurrentContract.ReleaseClause : 0,
+                    ActiveSponsorName = p.ActiveSponsor != null ? p.ActiveSponsor.BrandName : ""
+                };
+                saveData.SavedPlayers.Add(fpsd);
+            }
 
             // Save standings
             foreach (var club in DatabaseManager.Instance.Clubs)
@@ -4472,7 +4751,7 @@ namespace BehindTheScenesFootball.UI
             string key = "SaveGame_Slot_" + slotIndex;
             PlayerPrefs.SetString(key, JsonUtility.ToJson(saveData));
             PlayerPrefs.Save();
-            Debug.Log($"Game Saved to Slot {slotIndex}!");
+            Debug.Log($"Game Saved to Slot {slotIndex} with {saveData.SavedPlayers.Count} players persisted!");
         }
 
         public bool LoadGame(int slotIndex)
@@ -4484,24 +4763,81 @@ namespace BehindTheScenesFootball.UI
             GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
             if (saveData == null) return false;
 
-            // Restore Agency
+            // 1. Restore Week and Year
+            SimulationEngine.Instance.CurrentWeek = saveData.CurrentWeek;
+            if (saveData.CurrentYear > 0) SimulationEngine.Instance.CurrentYear = saveData.CurrentYear;
+
+            // 2. Restore Agency
             Agency loadedAgency = JsonUtility.FromJson<Agency>(saveData.AgencyJson);
             if (loadedAgency == null) return false;
-
             AgencyManager.Instance.ActiveAgency = loadedAgency;
 
-            // Restore Clients
+            // 3. Restore All Players
             loadedAgency.Clients.Clear();
-            if (loadedAgency.SavedClients != null && loadedAgency.SavedClients.Count > 0)
+            if (saveData.SavedPlayers != null && saveData.SavedPlayers.Count > 0)
+            {
+                foreach (var fpsd in saveData.SavedPlayers)
+                {
+                    if (fpsd == null || string.IsNullOrEmpty(fpsd.Id)) continue;
+                    Player p = DatabaseManager.Instance.Players.Find(x => x.Id == fpsd.Id || x.Name.Equals(fpsd.Name, System.StringComparison.OrdinalIgnoreCase));
+                    if (p == null)
+                    {
+                        p = new Player(fpsd.Name, fpsd.Age, fpsd.Position, fpsd.OVR, fpsd.POT);
+                        p.Id = fpsd.Id;
+                        DatabaseManager.Instance.Players.Add(p);
+                    }
+
+                    p.Name = fpsd.Name;
+                    p.Age = fpsd.Age;
+                    p.Position = fpsd.Position;
+                    p.OVR = fpsd.OVR;
+                    p.POT = fpsd.POT;
+                    p.Nationality = fpsd.Nationality;
+                    p.MarketValue = fpsd.MarketValue;
+                    p.IsAgencyClient = fpsd.IsAgencyClient;
+                    p.HasAgent = fpsd.HasAgent;
+                    p.CustomTransferCommissionPercent = fpsd.CustomTransferCommissionPercent;
+                    p.CustomWageCommissionPercent = fpsd.CustomWageCommissionPercent;
+                    p.CustomSponsorCommissionPercent = fpsd.CustomSponsorCommissionPercent;
+                    p.AgencyContractRemainingWeeks = fpsd.AgencyContractRemainingWeeks;
+                    p.Appearances = fpsd.Appearances;
+                    p.Goals = fpsd.Goals;
+                    p.Assists = fpsd.Assists;
+                    p.CleanSheets = fpsd.CleanSheets;
+                    p.MatchRatingSum = fpsd.MatchRatingSum;
+                    p.Form = fpsd.Form;
+                    p.Happiness = fpsd.Happiness;
+                    p.SquadRole = fpsd.SquadRole;
+
+                    if (!string.IsNullOrEmpty(fpsd.ClubId))
+                    {
+                        Club club = DatabaseManager.Instance.Clubs.Find(c => c.Id == fpsd.ClubId || c.Name == fpsd.ClubName || c.OriginalName == fpsd.ClubName);
+                        if (club != null)
+                        {
+                            Contract contract = new Contract(club.Id, club.Name, fpsd.WeeklyWage, fpsd.ContractYearsRemaining, fpsd.ReleaseClause);
+                            club.AddPlayer(p, contract);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(fpsd.ActiveSponsorName))
+                    {
+                        p.ActiveSponsor = DatabaseManager.Instance.Sponsors.Find(s => s.BrandName == fpsd.ActiveSponsorName);
+                    }
+
+                    if (fpsd.IsAgencyClient)
+                    {
+                        loadedAgency.AddClient(p);
+                    }
+                }
+            }
+
+            // Fallback restore for legacy save files
+            if (loadedAgency.SavedClients != null)
             {
                 foreach (var csd in loadedAgency.SavedClients)
                 {
                     if (csd == null) continue;
-                    Player p = DatabaseManager.Instance.Players.Find(x => x.Id == csd.PlayerId);
-                    if (p == null && !string.IsNullOrEmpty(csd.PlayerName))
-                    {
-                        p = DatabaseManager.Instance.Players.Find(x => x.Name.Equals(csd.PlayerName, System.StringComparison.OrdinalIgnoreCase));
-                    }
+                    Player p = DatabaseManager.Instance.Players.Find(x => x.Id == csd.PlayerId || x.Name.Equals(csd.PlayerName, System.StringComparison.OrdinalIgnoreCase));
                     if (p != null)
                     {
                         p.CustomTransferCommissionPercent = csd.CustomTransferCommissionPercent;
@@ -4512,42 +4848,28 @@ namespace BehindTheScenesFootball.UI
                     }
                 }
             }
-            else if (loadedAgency.ClientPlayerIds != null)
+
+            // 4. Restore Standings
+            if (saveData.ClubStandings != null)
             {
-                foreach (var id in loadedAgency.ClientPlayerIds)
+                foreach (var cData in saveData.ClubStandings)
                 {
-                    if (string.IsNullOrEmpty(id)) continue;
-                    Player p = DatabaseManager.Instance.Players.Find(x => x.Id == id);
-                    if (p == null)
+                    Club club = DatabaseManager.Instance.Clubs.Find(x => x.OriginalName == cData.Name || x.Name == cData.Name);
+                    if (club != null)
                     {
-                        p = DatabaseManager.Instance.Players.Find(x => x.Name.Equals(id, System.StringComparison.OrdinalIgnoreCase));
-                    }
-                    if (p != null)
-                    {
-                        loadedAgency.AddClient(p);
+                        club.StandingPlayed = cData.Played;
+                        club.StandingWins = cData.Wins;
+                        club.StandingDraws = cData.Draws;
+                        club.StandingLosses = cData.Losses;
+                        club.StandingGF = cData.GF;
+                        club.StandingGA = cData.GA;
                     }
                 }
             }
 
-            // Restore Week
-            SimulationEngine.Instance.CurrentWeek = saveData.CurrentWeek;
-
-            // Restore Standings
-            foreach (var cData in saveData.ClubStandings)
-            {
-                Club club = DatabaseManager.Instance.Clubs.Find(x => x.OriginalName == cData.Name);
-                if (club != null)
-                {
-                    club.StandingPlayed = cData.Played;
-                    club.StandingWins = cData.Wins;
-                    club.StandingDraws = cData.Draws;
-                    club.StandingLosses = cData.Losses;
-                    club.StandingGF = cData.GF;
-                    club.StandingGA = cData.GA;
-                }
-            }
-
-            Debug.Log($"Game Loaded from Slot {slotIndex}!");
+            RefreshUI();
+            if (activeSubpanel != null) activeSubpanel.Refresh();
+            Debug.Log($"Game Loaded from Slot {slotIndex} with full players and clients restored!");
             return true;
         }
 

@@ -314,10 +314,24 @@ namespace BehindTheScenesFootball.Managers
                             );
                         }
  
-                        // If still not enough, grab any !IsAgencyClient players in the entire database
+                        // If still not enough, generate fresh local candidates for the assigned league
                         if (candidates.Count < scout.Level)
                         {
-                            candidates = DatabaseManager.Instance.Players.FindAll(p => !p.IsAgencyClient);
+                            League scLeague = DatabaseManager.Instance.Leagues.Find(l => l.Name == scout.AssignedLeague || l.OriginalName == scout.AssignedLeague);
+                            if (scLeague != null && scLeague.Clubs.Count > 0)
+                            {
+                                int needed = scout.Level - candidates.Count;
+                                for (int k = 0; k < needed; k++)
+                                {
+                                    Club targetClub = scLeague.Clubs[Random.Range(0, scLeague.Clubs.Count)];
+                                    PlayerPosition randPos = (PlayerPosition)Random.Range(0, 4);
+                                    Player newDiscovery = DatabaseManager.Instance.GenerateRegenPlayer(randPos, targetClub);
+                                    if (newDiscovery != null && !candidates.Contains(newDiscovery))
+                                    {
+                                        candidates.Add(newDiscovery);
+                                    }
+                                }
+                            }
                         }
  
                         // Shuffle candidates
@@ -611,31 +625,37 @@ namespace BehindTheScenesFootball.Managers
                 }
             }
 
-            // Distribute goals and assists among FWDs and MIDs weighted by OVR and SquadRole
+            // Distribute goals and assists among FWDs, MIDs, and DEFs weighted by OVR, Position, and SquadRole
             List<Player> goalScorers = new List<Player>();
             List<Player> assistProviders = new List<Player>();
 
             foreach (var p in players)
             {
-                int roleWeight = 1;
-                if (p.SquadRole == "Yıldız Oyuncu") roleWeight = 4;
-                else if (p.SquadRole == "Önemli Oyuncu") roleWeight = 3;
-                else if (p.SquadRole == "İlk 11 Oyuncusu") roleWeight = 2;
-                else if (p.SquadRole == "Rotasyon Oyuncusu") roleWeight = 1;
+                float roleWeight = 1f;
+                if (p.SquadRole == "Yıldız Oyuncu") roleWeight = 4f;
+                else if (p.SquadRole == "Önemli Oyuncu") roleWeight = 3f;
+                else if (p.SquadRole == "İlk 11 Oyuncusu") roleWeight = 2f;
+                else if (p.SquadRole == "Rotasyon Oyuncusu") roleWeight = 1f;
+                else roleWeight = 0.5f;
+
+                // Factor in player OVR exponent (high overall players get significantly higher chance to score/assist)
+                float ovrFactor = Mathf.Pow(p.OVR / 60f, 2.2f);
+                int tickets = Mathf.Max(1, Mathf.RoundToInt(roleWeight * ovrFactor));
 
                 if (p.Position == PlayerPosition.FWD)
                 {
-                    for (int i = 0; i < 3 * roleWeight; i++) goalScorers.Add(p);
-                    for (int i = 0; i < roleWeight; i++) assistProviders.Add(p);
+                    for (int i = 0; i < 4 * tickets; i++) goalScorers.Add(p);
+                    for (int i = 0; i < 2 * tickets; i++) assistProviders.Add(p);
                 }
                 else if (p.Position == PlayerPosition.MID)
                 {
-                    for (int i = 0; i < roleWeight; i++) goalScorers.Add(p);
-                    for (int i = 0; i < 2 * roleWeight; i++) assistProviders.Add(p);
+                    for (int i = 0; i < 2 * tickets; i++) goalScorers.Add(p);
+                    for (int i = 0; i < 4 * tickets; i++) assistProviders.Add(p);
                 }
                 else if (p.Position == PlayerPosition.DEF)
                 {
-                    for (int i = 0; i < roleWeight; i++) assistProviders.Add(p);
+                    for (int i = 0; i < tickets; i++) goalScorers.Add(p); // Set-piece headers / penalties
+                    for (int i = 0; i < 2 * tickets; i++) assistProviders.Add(p);
                 }
             }
 
@@ -866,7 +886,7 @@ namespace BehindTheScenesFootball.Managers
                 // 8% chance per week to get a sponsor offer if successful
                 if (Random.value < 0.08f)
                 {
-                    List<Sponsor> candidates = DatabaseManager.Instance.Sponsors.FindAll(s => client.OVR >= s.MinOVRRequired);
+                    List<Sponsor> candidates = DatabaseManager.Instance.Sponsors.FindAll(s => client.OVR >= s.MinOVRRequired && client.OVR <= s.MaxOVRRequired);
                     if (candidates.Count > 0)
                     {
                         Sponsor targetSponsor = candidates[Random.Range(0, candidates.Count)];
@@ -877,7 +897,7 @@ namespace BehindTheScenesFootball.Managers
                             int baseWage = Mathf.RoundToInt(targetSponsor.WeeklyIncome * Random.Range(0.85f, 1.25f));
                             int defaultDuration = Random.Range(1, 4);
                             
-                            Sponsor offer = new Sponsor(targetSponsor.BrandName, baseWage, defaultDuration, targetSponsor.MinOVRRequired);
+                            Sponsor offer = new Sponsor(targetSponsor.BrandName, baseWage, defaultDuration, targetSponsor.MinOVRRequired, targetSponsor.MaxOVRRequired);
                             client.PendingSponsorOffers.Add(offer);
 
                             // Send mail notification
@@ -1154,6 +1174,7 @@ namespace BehindTheScenesFootball.Managers
                     subject = $"⚽ KARİYER REKORU VE HAT-TRICK: {client.Name}";
                     content = $"İnanılmaz! Oyuncunuz {client.Name}, son maçta 3 gol birden atarak kariyerinin ilk hat-trick'ine imza attı. Taraftarlar onun adını haykırıyor.";
                     effect = 30;
+                    client.PlayMatch(9.6f, 3, 0, false);
                     break;
                 case 19:
                     subject = $"🤢 GIDA ZEHİRLENMESİ: {client.Name}";

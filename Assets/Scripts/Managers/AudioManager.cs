@@ -76,7 +76,10 @@ namespace BehindTheScenesFootball.Managers
         private void LoadAudioClips()
         {
             // Dynamic load from Assets/Resources/Audio
-            string[] trackNames = { "Highlight_Reel", "Eighties_Action", "Who_Likes_to_Party", "Take_the_Lead", "Future_Gladiator" };
+            string[] trackNames = { 
+                "Highlight_Reel", "Eighties_Action", "Who_Likes_to_Party", "Take_the_Lead", "Future_Gladiator",
+                "Volatile_Reaction", "Heroic_Age", "Hitman", "Raving_Energy", "Movement_Proposition"
+            };
             foreach (var track in trackNames)
             {
                 AudioClip clip = Resources.Load<AudioClip>("Audio/" + track);

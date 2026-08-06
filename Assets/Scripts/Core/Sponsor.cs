@@ -7,13 +7,15 @@ namespace BehindTheScenesFootball.Core
         public int WeeklyIncome;
         public int DurationYears;
         public int MinOVRRequired;
+        public int MaxOVRRequired;
 
-        public Sponsor(string brandName, int weeklyIncome, int durationYears, int minOVRRequired)
+        public Sponsor(string brandName, int weeklyIncome, int durationYears, int minOVRRequired, int maxOVRRequired = 99)
         {
             BrandName = brandName;
             WeeklyIncome = weeklyIncome;
             DurationYears = durationYears;
             MinOVRRequired = minOVRRequired;
+            MaxOVRRequired = maxOVRRequired;
         }
     }
 }

@@ -44,6 +44,41 @@ namespace BehindTheScenesFootball.Managers
 
             // Translate common dynamic text patterns (Mails, notifications, logs, popups)
             // 0. Primary High-Priority Long Translations (to prevent substring theft / corruptions)
+            result = result.Replace("OYUNA DEVAM ET", "RESUME GAME");
+            result = result.Replace("KAYITLI OYUN AÇ", "LOAD SAVED GAME");
+            result = result.Replace("Haftalık Salary:", "Weekly Salary:");
+            result = result.Replace("Haftalık Salary", "Weekly Salary");
+            result = result.Replace("Haftalık Maaş:", "Weekly Wage:");
+            result = result.Replace("Haftalık Maaş", "Weekly Wage");
+            result = result.Replace("Haftalık", "Weekly");
+            result = result.Replace("haftalık", "weekly");
+
+            // Dialogue Request Mails & Subjects
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Özel Antrenör İsteyi", "📩 CLIENT REQUEST: Special Coach Request");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Özel Antrenör İsteği", "📩 CLIENT REQUEST: Special Coach Request");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Basın & İmaj Kampanyası", "📩 CLIENT REQUEST: Press & Image Campaign");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Maaş İyileştirmesi", "📩 CLIENT REQUEST: Wage Improvement");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Liderlik Desteği", "📩 CLIENT REQUEST: Leadership Support");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Transfer Arayışı", "📩 CLIENT REQUEST: Transfer Search");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Fizyoterapist Desteği", "📩 CLIENT REQUEST: Physiotherapist Support");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Sponsorluk Arayışı", "📩 CLIENT REQUEST: Sponsorship Search");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Zihinsel Koçluk", "📩 CLIENT REQUEST: Mental Coaching");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Gelişim Kampı", "📩 CLIENT REQUEST: Development Camp");
+            result = result.Replace("📩 MÜŞTERİ TALEBİ: Medya Koruması", "📩 CLIENT REQUEST: Media Protection");
+            result = result.Replace("MÜŞTERİ TALEBİ:", "CLIENT REQUEST:");
+
+            result = result.Replace("son zamanlarda bitiricilik/fizik antrenmanlarımda ekstra gelişime ihtiyacım var. Özel bir antrenör tutmamız durumunda performansımı artırabilirim. Bize maliyeti yaklaşık", "I need extra development in my finishing/physical training lately. If we hire a personal coach, I can boost my performance. The cost to us will be about");
+            result = result.Replace("son haftalarda hakkımda çıkan asılsız haberler imajımı zedeliyor. Profesyonel bir PR ajansıyla anlaşıp imaj çalışması yaparsak hem moralim düzelir hem piyasa değerim artar.", "false news about me in recent weeks is damaging my image. If we hire a professional PR agency for image work, my morale will improve and my market value will rise.");
+            result = result.Replace("takımdaki performansıma kıyasla aldığım maaş çok düşük kalıyor. Kulüp yönetimiyle konuşup sözleşmemi iyileştirmemizi rica ediyorum.", "my wage is too low compared to my performance in the team. I request you to talk to club management and improve my contract.");
+            result = result.Replace("soyunma odasında daha fazla sorumluluk almak istiyorum. Kulüp yönetimi ve hocayla konuşup liderlik rolümü pekiştirmeme destek olur musun?", "I want to take more responsibility in the dressing room. Could you support me in talking to club management and coach to reinforce my leadership role?");
+            result = result.Replace("artık bu kulüpte misyonumu tamamladığımı hissediyorum. Önümüzdeki transfer döneminde teklifleri değerlendirip başka bir takıma gitmeme yardımcı olmanı bekliyorum.", "I feel I have completed my mission at this club. I expect you to help me evaluate offers in the upcoming transfer window and move to another team.");
+            result = result.Replace("sakatlık riskimi azaltmak ve maç toparlanma süremi kısaltmak için özel bir fizyoterapist ekibiyle çalışmak istiyorum.", "I want to work with a private physiotherapist team to reduce my injury risk and shorten recovery time.");
+            result = result.Replace("sahada formum yüksek ama hiç bireysel sponsorluk anlaşmam yok. Bana prestijli bir marka sponsorluğu bulabilir misin?", "my form on the pitch is high but I have no individual sponsor deals. Can you find me a prestigious brand sponsorship?");
+            result = result.Replace("üzerimdeki baskı çok arttı ve saha içi odaklanma sorunu yaşıyorum. Spor psikoloğu ile 1 aylık seans alırsak zihinsel dayanıklılığım artacak.", "the pressure on me has increased significantly and I have trouble focusing on pitch. If we get a 1-month session with a sports psychologist, my mental resilience will increase.");
+            result = result.Replace("potansiyelimi en üst seviyeye çıkarmak için sezon arası kişisel gelişim kampına katılmak istiyorum.", "I want to attend an off-season personal development camp to maximize my potential.");
+            result = result.Replace("taraftarlar ve sosyal medya son maçtan sonra üzerime çok geliyor. Basına bir açıklama yapıp arkamda olduğunu gösterir misin?", "fans and social media are coming at me hard after the last match. Could you make a statement to press showing you have my back?");
+            result = result.Replace("GELEN MESAJ:", "INCOMING MESSAGE:");
+
             result = result.Replace("Sponsor Sözleşmesi Yok", "No Sponsor Contract");
             result = result.Replace("Sayın Menajer,\n\nOyuncunuz", "Dear Manager,\n\nYour player");
             result = result.Replace("kulübündeki başarılı performansıyla markamızın dikkatini çekmiştir. Kendisine haftalık taban", "has attracted our brand's attention with his performance. We would like to offer a base weekly wage of");
@@ -60,6 +95,18 @@ namespace BehindTheScenesFootball.Managers
             result = System.Text.RegularExpressions.Regex.Replace(result, @"<b>(.*?)</b>, <b>(.*?)</b> kulübünün <b>€(.*?)</b> bonservis teklifini kabul etti!", "<b>$1</b> accepted <b>$2</b>'s transfer offer of <b>€$3</b>!");
             result = System.Text.RegularExpressions.Regex.Replace(result, @"<b>(.*?)</b>, <b>(.*?)</b> kulübünün <b>€(.*?)</b> bonservis teklifini kabul etti", "<b>$1</b> accepted <b>$2</b>'s transfer offer of <b>€$3</b>");
             result = System.Text.RegularExpressions.Regex.Replace(result, @"\((.*?) kulübünde oynaması planlanıyor\)", "(planned to play in $1)");
+
+            // Sponsorship Log Patterns
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"SPONSORLUK:\s*Müşteriniz\s+(.*?),\s+(.*?)\s+ile\s+(\d+)\s+yıllık\s+sponsorluk\s+imzaladı!\s+Ajans\s+kasasına\s+€(.*?)\s+imza primi eklendi\s*\(Ajans Komisyonu:\s*%(.*?)\)", "SPONSORSHIP: Your client $1 signed a $3-year sponsorship with $2! Added €$4 signing bonus to agency vault (Agency Commission: $5%)");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"SPONSORLUK:\s*Your client\s+(.*?),\s+(.*?)\s+ile\s+(\d+)\s+(years|year)\s+sponsorship signed!\s+Added to agency vault\s+€(.*?)\s+imza primi eklendi\s*\(Agency Commission:\s*%(.*?)\)", "SPONSORSHIP: Your client $1 signed a $3-year sponsorship with $2! Added €$4 signing bonus to agency vault (Agency Commission: $5%)");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"SPONSORLUK:\s*Your client\s+(.*?),\s+(.*?)\s+ile\s+(\d+)\s+(years|year)\s+sponsorship signed!\s+Added to agency vault\s+€(.*?)\s+imza primi eklendi\s*\(Agency Commission:\s*%(.*?)\)\.", "SPONSORSHIP: Your client $1 signed a $3-year sponsorship with $2! Added €$4 signing bonus to agency vault (Agency Commission: $5%).");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\b(\w+)\s+ile\s+(\d+)\s+yıllık\s+sponsorluk\s+imzaladı!", "signed a $2-year sponsorship with $1!");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\b(\w+)\s+ile\s+(\d+)\s+years\s+sponsorship signed!", "signed a $2-year sponsorship with $1!");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"Ajans kasasına\s+€(.*?)\s+imza primi eklendi", "Added €$1 signing bonus to agency vault");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"Added to agency vault\s+€(.*?)\s+imza primi eklendi", "Added €$1 signing bonus to agency vault");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(Ajans Komisyonu:\s*%(.*?)\)", "(Agency Commission: $1%)");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(Agency Commission:\s*%(.*?)\)", "(Agency Commission: $1%)");
+            result = result.Replace("SPONSORLUK:", "SPONSORSHIP:");
 
             result = result.Replace("📩 GELEN KUTUSU BOŞ", "📩 INBOX EMPTY");
             result = result.Replace("Şu an aktif bir transfer teklifi veya özel mesaj bulunmuyor.", "There are no active transfer offers or private messages at the moment.");
@@ -544,6 +591,163 @@ namespace BehindTheScenesFootball.Managers
             result = result.Replace(" yıllık sözleşme imzaladı! Ajansımız ", " years contract signed! Our agency earned ");
             result = result.Replace(" imza parası kazandı!", " signing bonus!");
 
+            // Additional Activity Log & Event Replacements
+            result = result.Replace("Performans:", "Performance:");
+            result = result.Replace(" Maç ", " Apps ");
+            result = result.Replace(" Gol ", " Goals ");
+            result = result.Replace(" Asist ", " Assists ");
+            result = result.Replace(" Ort.", " Rating");
+
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\bSezon\s+(\d+)\b", "Season $1");
+            result = result.Replace("NASIL OYNANIR?", "HOW TO PLAY?");
+            result = result.Replace("REHBERİ KAPAT", "CLOSE GUIDE");
+            result = result.Replace("Sezon", "Season");
+            result = result.Replace("KOV", "FIRE");
+            result = result.Replace("GÖZLEMCİ İŞTEN ÇIKARILDI:", "SCOUT DISMISSED:");
+            result = result.Replace("ile yollar ayrıldı.", "was dismissed.");
+            result = result.Replace("işten çıkarıldı.", "was dismissed.");
+            result = result.Replace("Merkez Seviyesi: Sev", "Center Level: Lvl");
+            result = result.Replace("MERKEZİ GELİŞTİR", "UPGRADE CENTER");
+            result = result.Replace("GELİŞTİR (Sev", "UPGRADE (Lvl");
+            result = result.Replace("MAKSİMUM SEVİYE", "MAX LEVEL");
+            result = result.Replace("GÖZLEMCİ MERKEZİ GELİŞTİRİLDİ: Seviye", "SCOUTING CENTER UPGRADED: Level");
+            result = result.Replace("yapıldı!", "achieved!");
+
+            result = result.Replace("Temsilcilik Süresi (Yıl):", "Representation Duration (Years):");
+            result = result.Replace("Temsilcilik Süresi (Years):", "Representation Duration (Years):");
+            result = result.Replace("Temsilcilik Süresi:", "Representation Duration:");
+            result = result.Replace("Temsilcilik Süresi", "Representation Duration");
+
+            result = result.Replace("’Menajerim,", "’Manager,");
+            result = result.Replace(" 'Menajerim,", " 'Manager,");
+            result = result.Replace("'Menajerim,", "'Manager,");
+            result = result.Replace("Menajerim,", "Manager,");
+            result = result.Replace("’Patron,", "’Boss,");
+            result = result.Replace(" 'Patron,", " 'Boss,");
+            result = result.Replace("'Patron,", "'Boss,");
+            result = result.Replace("Patron,", "Boss,");
+
+            result = result.Replace("Yerel Kebap Salonu", "Local Kebab");
+            result = result.Replace("Şehir Fırını", "City Bakery");
+            result = result.Replace("Köşe Kafe", "Corner Cafe");
+            result = result.Replace("Köy Lokantası", "Village Diner");
+            result = result.Replace("Park Büfesi", "Parkside Supply");
+            result = result.Replace("Hızlı Pizza", "Express Pizza");
+            result = result.Replace("Mahalle Marketi", "Neighborhood Market");
+            result = result.Replace("Kasaba Oto", "Town Auto");
+            result = result.Replace("Metro Otomotiv", "Metro Motors");
+            result = result.Replace("AeroTech Spor", "AeroTech Global");
+            result = result.Replace("Titan Spor Giyim", "Titan Sportswear");
+            result = result.Replace("Apex Enerji", "Apex Energy");
+            result = result.Replace("Vanguard Havayolları", "Vanguard Airways");
+
+            result = result.Replace("Sponsorluk: <b>Sözleşme Yok</b>", "Sponsorship: No Contract");
+            result = result.Replace("Sponsorluk: Sözleşme None", "Sponsorship: No Contract");
+            result = result.Replace("Sponsorluk:", "Sponsorship:");
+            result = result.Replace("Sözleşme Yok", "No Contract");
+            result = result.Replace("Sözleşme None", "No Contract");
+
+            result = result.Replace("Müşterilerden weekly €", "Weekly €");
+            result = result.Replace("Müşterilerden haftalık €", "Weekly €");
+            result = result.Replace("Müşterilerden haftalık", "Weekly");
+            result = result.Replace("Müşterilerden", "From clients");
+            result = result.Replace("takım içi lider olarak desteklendi. (Moral:", "was supported as team leader. (Morale:");
+            result = result.Replace("takım içi lider olarak desteklendi.", "was supported as team leader.");
+            result = result.Replace("size bir talep mesajı gönderdi. Gelen Kutunuzu kontrol edin.", "sent you a request message. Check your Inbox.");
+            result = result.Replace("HARİKA PERFORMANS: Müşterimiz", "GREAT PERFORMANCE: Our client");
+            result = result.Replace("harika bir performans gösterdi (Puan:", "had a great performance (Rating:");
+            result = result.Replace("İYİ PERFORMANS: Müşterimiz", "GOOD PERFORMANCE: Our client");
+            result = result.Replace("iyi bir maç çıkardı (Puan:", "had a good match (Rating:");
+            result = result.Replace("ZAYIF PERFORMANS: Müşterimiz", "POOR PERFORMANCE: Our client");
+            result = result.Replace("KÖTÜ PERFORMANS: Müşterimiz", "POOR PERFORMANCE: Our client");
+            result = result.Replace("kötü bir performans sergiledi (Puan:", "had a poor performance (Rating:");
+            result = result.Replace("GOL! Müşteriniz", "GOAL! Your client");
+            result = result.Replace("takımı adına gol attı! Ajans itibarı arttı (+3).", "scored a goal for his team! Agency reputation increased (+3).");
+            result = result.Replace("HAT-TRICK! Müşteriniz", "HAT-TRICK! Your client");
+            result = result.Replace("tam 3 gol atarak yıldızlaştı! Ajans itibarı arttı (+10).", "starred by scoring 3 goals! Agency reputation increased (+10).");
+            result = result.Replace("ASİST! Müşteriniz", "ASSIST! Your client");
+            result = result.Replace("takım arkadaşına gol pası verdi. Ajans itibarı arttı (+2).", "provided an assist. Agency reputation increased (+2).");
+            result = result.Replace("TEMİZ KALE! Müşteriniz", "CLEAN SHEET! Your client");
+            result = result.Replace("kalesini gole kapattı / defansta yıldızlaştı. Ajans itibarı arttı (+3).", "kept a clean sheet / starred in defense. Agency reputation increased (+3).");
+            result = result.Replace("Puan:", "Rating:");
+
+            result = result.Replace("POTANSİYEL KAYBI: Müşteriniz", "POTENTIAL LOSS: Your client");
+            result = result.Replace("az süre aldığı için gelişim potansiyeli geriledi (Yeni POT:", "development potential declined due to low playing time (New POT:");
+            result = result.Replace("DİNAMİK POTANSİYEL: Müşteriniz", "DYNAMIC POTENTIAL: Your client");
+            result = result.Replace("düzenli ilk 11 oynadığı için potansiyeli yükseldi (Yeni POT:", "potential increased due to playing regularly (New POT:");
+            result = result.Replace("GELİŞİM: Müşteriniz", "DEVELOPMENT: Your client");
+            result = result.Replace("maça çıkarak GEN puanını +", "appearances increased OVR by +");
+            result = result.Replace("yükseltti (Yeni GEN:", " (New OVR:");
+            result = result.Replace("GERİLEME: Müşteriniz", "DECLINE: Your client");
+            result = result.Replace("ilerleyen yaşı nedeniyle GEN puanından", "lost OVR points due to age");
+            result = result.Replace("kaybetti (Yeni GEN:", "(New OVR:");
+            result = result.Replace("KİRALIK ÖNERİSİ:", "LOAN SUGGESTION:");
+            result = result.Replace("transfer piyasasında kiralık kulüplere önerildi. 1 hafta içinde teklifler gelecektir.", "was suggested to loan clubs in transfer market. Offers will arrive in 1 week.");
+            result = result.Replace("TEMAS:", "CONTACT:");
+            result = result.Replace("ile temasa geçildi. Takip listenizde görebilirsiniz.", "was contacted. You can see in your watchlist.");
+            result = result.Replace("ZAM ANLAŞMASI: Müşteriniz", "WAGE INCREASE DEAL: Your client");
+            result = result.Replace("kulübü ile sözleşmesini yeniledi (Yeni Maaş:", "renewed contract with club (New Wage:");
+            result = result.Replace("Toplam Süre:", "Total Duration:");
+            result = result.Replace("Oyuncu Morali:", "Player Morale:");
+            result = result.Replace("TRANSFER TALEBİ:", "TRANSFER REQUEST:");
+            result = result.Replace("kulübün zam teklifini reddetti ve transfer listesine konuldu.", "rejected wage offer and was transfer listed.");
+            result = result.Replace("KULÜP ANLAŞMASI: Müşteriniz", "CLUB DEAL: Your client");
+            result = result.Replace("KİRALAMA BAŞARILI: Müşteriniz", "LOAN SUCCESSFUL: Your client");
+            result = result.Replace("yıllığına", "years to");
+            result = result.Replace("kulübüne kiralandı!", "club on loan!");
+            result = result.Replace("TRANSFER BAŞARILI: Müşteriniz", "TRANSFER SUCCESSFUL: Your client");
+            result = result.Replace("bonservis bedeliyle", "transfer fee to");
+            result = result.Replace("kulübüne transfer oldu! Ajansımız €", "club! Our agency earned €");
+            result = result.Replace("imza parası kazandı.", "signing bonus.");
+            result = result.Replace("SPONSORLUK: Müşteriniz", "SPONSORSHIP: Your client");
+            result = result.Replace("yıllık sponsorluk imzaladı! Ajans kasasına €", "years sponsorship signed! Added to agency vault €");
+            result = result.Replace("imza primi eklendi (Ajans Komisyonu:", "signing bonus (Agency Commission:");
+            result = result.Replace("PERSONEL ALIMI: Gözlemci", "STAFF RECRUITMENT: Scout");
+            result = result.Replace("karşılığında işe alındı.", "was hired for.");
+            result = result.Replace("İşe Alım Başarısız: Yetersiz bütçe", "Recruitment Failed: Insufficient budget");
+            result = result.Replace("MAĞAZA SATIN ALIMI: €", "STORE PURCHASE: €");
+            result = result.Replace("satın alındı! Ajansımıza +", "purchased! Earned +");
+            result = result.Replace("İtibar puanı kazandırıldı.", "Reputation points for our agency.");
+            result = result.Replace("Yetersiz Bütçe: Oyuncunun talebini karşılamak için €", "Insufficient Budget: To fulfill player request €");
+            result = result.Replace("bütçeniz bulunmamaktadır!", "budget is not available!");
+            result = result.Replace("KRİZ! Müşteriniz", "CRISIS! Your client");
+            result = result.Replace("bir sorunla karşılaştı (Moral etkisi:", "encountered a problem (Morale effect:");
+            result = result.Replace("). Gelen kutunuzu kontrol edin.", "). Check your inbox.");
+            result = result.Replace("GELİŞME! Müşteriniz", "DEVELOPMENT! Your client");
+            result = result.Replace("hakkında olumlu bir olay yaşandı (Moral etkisi:", "had a positive event (Morale effect:");
+            result = result.Replace("*** SEZON SONU:", "*** END OF SEASON:");
+            result = result.Replace("EMEKLİ OLDU:", "RETIRED:");
+            result = result.Replace("futbolu bıraktı ve sistemden silindi. Yerine genç bir oyuncu üretildi.", "retired from football and was removed from system. A young player was generated in place.");
+            result = result.Replace("Sözleşme Bitti:", "Contract Expired:");
+            result = result.Replace("artık Serbest Oyuncu (", "is now a Free Agent (");
+            result = result.Replace("kulübünden ayrıldı).", "left club).");
+            result = result.Replace("Otomatik Simülasyon BAŞLADI.", "Auto Simulation STARTED.");
+            result = result.Replace("Otomatik Simülasyon DURDURULDU.", "Auto Simulation STOPPED.");
+            result = result.Replace("Müşterilerden haftalık €", "Weekly €");
+            result = result.Replace("ajans komisyonu tahsil edildi.", "agency commission collected from clients.");
+            result = result.Replace("KOMİSYON! €", "COMMISSION! €");
+            result = result.Replace("tutarındaki transferden %", "transfer of %");
+            result = result.Replace("oranında €", "rate earned €");
+            result = result.Replace("kazanıldı (", "earned (");
+            result = result.Replace("). Ajans İtibarı arttı (+20).", "). Agency Reputation increased (+20).");
+            result = result.Replace("★★★ TEBRİKLER! Ajansımız SEVİYE", "★★★ CONGRATULATIONS! Our Agency is LEVEL");
+            result = result.Replace("oldu! Kapasite:", "now! Capacity:");
+            result = result.Replace("oyuncu. ★★★", "players. ★★★");
+            result = result.Replace("zaten bu ajans tarafından temsil ediliyor.", "is already represented by this agency.");
+            result = result.Replace("Müşteri sözleşmesi tek taraflı feshedildi:", "Client contract unilaterally terminated:");
+            result = result.Replace("Ajans itibarı düştü (-5).", "Agency reputation decreased (-5).");
+            result = result.Replace("Maaş İyileştirme & Zam", "Wage Adjustment & Increase");
+            result = result.Replace("Mevcut Sözleşme:", "Current Contract:");
+            result = result.Replace("Yıl Kalan", "Years Remaining");
+            result = result.Replace("Hafta Kalan", "Weeks Remaining");
+            result = result.Replace("Yeni Haftalık Maaş:", "New Weekly Wage:");
+            result = result.Replace("Ek Sözleşme Süresi:", "Additional Contract Duration:");
+            result = result.Replace("yönetimi zam ve sözleşme uzatma talebinizi değerlendiriyor.", "management is evaluating your raise and contract extension request.");
+            result = result.Replace("PERSONEL AL (GÖZLEMCİ)", "HIRE STAFF (SCOUT)");
+            result = result.Replace("PERSONEL AL", "HIRE STAFF");
+            result = result.Replace("Şirket Seviyesi:", "Company Level:");
+            result = result.Replace("Gereken Seviye:", "Required Level:");
+
             // Dynamic country & league translations within dynamic strings
             foreach (var kp in countryTranslations)
             {
@@ -598,6 +802,11 @@ namespace BehindTheScenesFootball.Managers
 
         private static Dictionary<string, string> uiTranslations = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            { "OYUNA DEVAM ET", "RESUME GAME" },
+            { "KAYITLI OYUN AÇ", "LOAD SAVED GAME" },
+            { "Haftalık Maaş:", "Weekly Wage:" },
+            { "Haftalık", "Weekly" },
+            { "Haftalık:", "Weekly:" },
             { "PUAN DURUMU", "STANDINGS" },
             { "⚽ PUAN DURUMU", "⚽ STANDINGS" },
             { "⚽ Transfer: Açık", "⚽ Transfer: Open" },
