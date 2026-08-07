@@ -849,7 +849,7 @@ namespace BehindTheScenesFootball.UI
             SetRectTransform(managerNameText, new Vector2(0.52f, 0.68f), new Vector2(0.90f, 0.95f), Vector2.zero, Vector2.zero);
             managerNameText.fontStyle = FontStyle.Bold;
 
-            agencyNameText = CreateText(header.transform, "AgencyText", "★ Arka Bahçe", 48, Color.white, TextAnchor.MiddleLeft);
+            agencyNameText = CreateText(header.transform, "AgencyText", "★ EKT Ajans", 48, Color.white, TextAnchor.MiddleLeft);
             SetRectTransform(agencyNameText, new Vector2(0.52f, 0.36f), new Vector2(0.90f, 0.63f), Vector2.zero, Vector2.zero);
             agencyNameText.fontStyle = FontStyle.Bold;
 
@@ -1958,9 +1958,7 @@ namespace BehindTheScenesFootball.UI
  
             string actualClub = p.IsOnLoan ? p.ParentClubName : (p.CurrentContract != null ? p.CurrentContract.ClubName : "Serbest");
             string wage = p.CurrentContract != null ? $"€{p.CurrentContract.WeeklyWage:N0} / hafta" : "Yok";
-            string rep = p.IsAgencyClient ? "<color=#2ECC71><b>Sizin Müşteriniz</b></color>" : 
-                            (p.CurrentContract != null ? "<color=#E74C3C><b>Rakip Temsilci</b></color>" : "<b>Boşta (Temsilcisi Yok)</b>");
- 
+
             string happyStr = "";
             string happyColor = "#E74C3C"; // red
             if (p.Happiness >= 80f) { happyStr = "Çok Mutlu (+Perf)"; happyColor = "#2ECC71"; }
@@ -1970,13 +1968,13 @@ namespace BehindTheScenesFootball.UI
 
             string val = $"€{p.MarketValue:N0}";
             string sponsorText = p.ActiveSponsor != null 
-                ? $"<color=#F1C40F><b>{p.ActiveSponsor.BrandName} ({p.ActiveSponsor.DurationYears} Yıl - €{p.ActiveSponsor.WeeklyIncome:N0}/hafta)</b></color>" 
+                ? $"<color=#F1C40F><b>{p.ActiveSponsor.LocalizedBrandName} ({p.ActiveSponsor.DurationYears} Yıl - €{p.ActiveSponsor.WeeklyIncome:N0}/hafta)</b></color>" 
                 : "<b>Sözleşme Yok</b>";
 
             // Dynamic Vertical List of Details Labels (Guarantees zero overlap for any player type)
             float curY = 0.610f;
-            float stepY = 0.052f;
-            float labelHeight = 0.042f;
+            float stepY = 0.040f;
+            float labelHeight = 0.033f;
 
             // 1. Club
             CreateDetailLabel(cardObj.transform, "LblClub", p.IsOnLoan ? $"Asıl Kulüp: <b>{actualClub}</b>" : $"Kulüp: <b>{actualClub}</b>", new Vector2(0.08f, curY - labelHeight), new Vector2(0.92f, curY));
@@ -2037,23 +2035,37 @@ namespace BehindTheScenesFootball.UI
             }
 
             // 10. Traits Badges
-            curY -= 0.005f;
+            curY -= 0.003f;
             CreateDetailBadge(cardObj.transform, "PosTraitBadge", $"✔ {p.PositiveTrait}", new Vector2(0.08f, curY - labelHeight), new Vector2(0.48f, curY), new Color(46f/255f, 204f/255f, 113f/255f, 0.25f), new Color(46f/255f, 204f/255f, 113f/255f), 48, new Color(46f/255f, 204f/255f, 113f/255f, 0.75f));
             CreateDetailBadge(cardObj.transform, "NegTraitBadge", $"✘ {p.NegativeTrait}", new Vector2(0.52f, curY - labelHeight), new Vector2(0.92f, curY), new Color(231f/255f, 76f/255f, 60f/255f, 0.25f), new Color(231f/255f, 76f/255f, 60f/255f), 48, new Color(231f/255f, 76f/255f, 60f/255f, 0.75f));
-            curY -= stepY;
 
-            // 11. Sponsor Offers Button (if present)
+            // 11. Fixed Sponsor Offers Button (Always present at fixed position Y: 0.145f - 0.195f)
             if (p.IsAgencyClient)
             {
                 bool hasSponsorOffers = p.ActiveSponsor == null && p.PendingSponsorOffers != null && p.PendingSponsorOffers.Count > 0;
-                if (hasSponsorOffers)
-                {
-                    Text btnSponsorOffers = CreateButtonHelper(cardObj.transform, "BtnSponsorOffers", $"SPONSOR TEKLİFLERİ ({p.PendingSponsorOffers.Count})", colorGold, new Color(11f/255f, 12f/255f, 16f/255f, 1f), () => {
+                
+                Color sponsorBtnBg = hasSponsorOffers ? colorGold : new Color(110f/255f, 95f/255f, 35f/255f, 0.35f);
+                Color sponsorBtnTxtColor = hasSponsorOffers ? new Color(11f/255f, 12f/255f, 16f/255f, 1f) : new Color(170f/255f, 155f/255f, 100f/255f, 0.6f);
+                string sponsorBtnLabel = hasSponsorOffers 
+                    ? BehindTheScenesFootball.Managers.LocalizationManager.Translate($"SPONSOR TEKLİFLERİ ({p.PendingSponsorOffers.Count})") 
+                    : (p.ActiveSponsor != null 
+                        ? BehindTheScenesFootball.Managers.LocalizationManager.Translate("SPONSOR SÖZLEŞMESİ AKTİF") 
+                        : BehindTheScenesFootball.Managers.LocalizationManager.Translate("SPONSOR TEKLİFİ YOK"));
+
+                Text btnSponsorOffers = CreateButtonHelper(cardObj.transform, "BtnSponsorOffers", sponsorBtnLabel, sponsorBtnBg, sponsorBtnTxtColor, () => {
+                    if (hasSponsorOffers)
+                    {
                         ShowSponsorOffersList(p, modalObj);
-                    });
-                    SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, curY - labelHeight - 0.005f), new Vector2(0.92f, curY), Vector2.zero, Vector2.zero);
-                    btnSponsorOffers.fontSize = 34;
-                    btnSponsorOffers.fontStyle = FontStyle.Bold;
+                    }
+                });
+                SetRectTransform(btnSponsorOffers.transform.parent, new Vector2(0.08f, 0.145f), new Vector2(0.92f, 0.195f), Vector2.zero, Vector2.zero);
+                btnSponsorOffers.fontSize = 34;
+                btnSponsorOffers.fontStyle = FontStyle.Bold;
+
+                if (!hasSponsorOffers)
+                {
+                    Button b = btnSponsorOffers.transform.parent.GetComponent<Button>();
+                    if (b != null) b.interactable = false;
                 }
 
                 int currentGlobalWeek = SimulationEngine.Instance.CurrentYear * 52 + SimulationEngine.Instance.CurrentWeek;
@@ -3782,7 +3794,7 @@ namespace BehindTheScenesFootball.UI
                 rowBorder.effectDistance = new Vector2(1f, 1f);
 
                 // Brand details (Top half, spans almost full width)
-                string infoStr = $"<b>{offer.BrandName}</b>\nGereken GEN: <b>{offer.MinOVRRequired}</b>";
+                string infoStr = $"<b>{offer.LocalizedBrandName}</b>\nGereken GEN: <b>{offer.MinOVRRequired}</b>";
                 Text infoTxt = CreateText(row.transform, "InfoTxt", infoStr, 52, Color.white, TextAnchor.MiddleLeft);
                 SetRectTransform(infoTxt, new Vector2(0.04f, 0.48f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero);
                 infoTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -3809,7 +3821,7 @@ namespace BehindTheScenesFootball.UI
 
         private void ShowSponsorNegotiation(Player p, Sponsor offer, GameObject detailsModal, GameObject listOverlay)
         {
-            var (content, overlay, cardObj) = CreateScrollableNegotiationCard(detailsModal.transform, p, $"{offer.BrandName} Görüşmesi", null);
+            var (content, overlay, cardObj) = CreateScrollableNegotiationCard(detailsModal.transform, p, $"{offer.LocalizedBrandName} Görüşmesi", null);
 
             int proposedYears = offer.DurationYears;
             int proposedComm = 10; // 10% commission default
@@ -3935,7 +3947,7 @@ namespace BehindTheScenesFootball.UI
 
                 if (proposedCommPct > maxComm)
                 {
-                    feedbackTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"<color=#E74C3C>{offer.BrandName} Temsilcisi: 'Talep ettiğiniz %{proposedComm} komisyon oranı bizim için çok fazla. En fazla %{maxComm * 100:0.0} kabul edebiliriz!'</color>");
+                    feedbackTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"<color=#E74C3C>{offer.LocalizedBrandName} Temsilcisi: 'Talep ettiğiniz %{proposedComm} komisyon oranı bizim için çok fazla. En fazla %{maxComm * 100:0.0} kabul edebiliriz!'</color>");
                     p.Happiness = Mathf.Clamp(p.Happiness - 3f, 10f, 100f);
                     return;
                 }
@@ -3943,7 +3955,7 @@ namespace BehindTheScenesFootball.UI
                 int maxBonus = Mathf.RoundToInt(offer.WeeklyIncome * 6f * (p.OVR / 65f));
                 if (proposedBonus > maxBonus)
                 {
-                    feedbackTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"<color=#E74C3C>{offer.BrandName} Temsilcisi: 'İmza primi talebiniz ({proposedBonus:N0}) marka bütçemizi aşıyor! Maksimum €{maxBonus:N0} prim ödeyebiliriz.'</color>");
+                    feedbackTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"<color=#E74C3C>{offer.LocalizedBrandName} Temsilcisi: 'İmza primi talebiniz ({proposedBonus:N0}) marka bütçemizi aşıyor! Maksimum €{maxBonus:N0} prim ödeyebiliriz.'</color>");
                     p.Happiness = Mathf.Clamp(p.Happiness - 2f, 10f, 100f);
                     return;
                 }
@@ -3954,7 +3966,7 @@ namespace BehindTheScenesFootball.UI
                 p.CustomSponsorCommissionPercent = proposedCommPct;
                 AgencyManager.Instance.ActiveAgency.Balance += proposedBonus;
 
-                AgencyManager.Instance.LogActivity($"SPONSORLUK: Müşteriniz {p.Name}, {offer.BrandName} ile {proposedYears} yıllık sponsorluk imzaladı! Ajans kasasına €{proposedBonus:N0} imza primi eklendi (Ajans Komisyonu: %{proposedComm}).");
+                AgencyManager.Instance.LogActivity($"SPONSORLUK: Müşteriniz {p.Name}, {offer.LocalizedBrandName} ile {proposedYears} yıllık sponsorluk imzaladı! Ajans kasasına €{proposedBonus:N0} imza primi eklendi (Ajans Komisyonu: %{proposedComm}).");
 
                 Destroy(overlay);
                 if (listOverlay != null) Destroy(listOverlay);

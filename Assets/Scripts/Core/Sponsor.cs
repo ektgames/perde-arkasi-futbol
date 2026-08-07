@@ -9,6 +9,14 @@ namespace BehindTheScenesFootball.Core
         public int MinOVRRequired;
         public int MaxOVRRequired;
 
+        public string LocalizedBrandName
+        {
+            get
+            {
+                return BehindTheScenesFootball.Managers.LocalizationManager.Translate(BrandName);
+            }
+        }
+
         public Sponsor(string brandName, int weeklyIncome, int durationYears, int minOVRRequired, int maxOVRRequired = 99)
         {
             BrandName = brandName;

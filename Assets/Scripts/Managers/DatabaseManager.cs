@@ -87,39 +87,39 @@ namespace BehindTheScenesFootball.Managers
         private void GenerateMockSponsors()
         {
             // Tier 5: Elite World Brands (88-99 OVR / Superstar Players) - €35K - €85K/week
-            Sponsors.Add(new Sponsor("Crown Chrono", 85000, 5, 90, 99));
-            Sponsors.Add(new Sponsor("Vanguard Airways", 70000, 4, 89, 99));
-            Sponsors.Add(new Sponsor("AeroTech Global", 65000, 4, 88, 99));
-            Sponsors.Add(new Sponsor("Titan Sportswear", 60000, 3, 88, 99));
-            Sponsors.Add(new Sponsor("Apex Energy", 55000, 3, 88, 99));
+            Sponsors.Add(new Sponsor("Taç Saat", 85000, 5, 90, 99));
+            Sponsors.Add(new Sponsor("Vanguard Hava Yolları", 70000, 4, 89, 99));
+            Sponsors.Add(new Sponsor("AeroTek Global", 65000, 4, 88, 99));
+            Sponsors.Add(new Sponsor("Titan Spor", 60000, 3, 88, 99));
+            Sponsors.Add(new Sponsor("Apex Enerji", 55000, 3, 88, 99));
 
             // Tier 4: Major International Brands (80-87 OVR / Star Players) - €15K - €28K/week
-            Sponsors.Add(new Sponsor("Skyline Aviation", 28000, 3, 84, 87));
-            Sponsors.Add(new Sponsor("Volt Hydration", 22000, 4, 82, 87));
+            Sponsors.Add(new Sponsor("Skyline Havacılık", 28000, 3, 84, 87));
+            Sponsors.Add(new Sponsor("Volt İçecek", 22000, 4, 82, 87));
             Sponsors.Add(new Sponsor("Strikeforce Pro", 20000, 3, 81, 87));
-            Sponsors.Add(new Sponsor("Velocity Gear", 18000, 3, 80, 87));
-            Sponsors.Add(new Sponsor("Prime Audio", 15000, 3, 80, 87));
+            Sponsors.Add(new Sponsor("Velocity Ekipman", 18000, 3, 80, 87));
+            Sponsors.Add(new Sponsor("Prime Ses Sistemleri", 15000, 3, 80, 87));
 
             // Tier 3: Regional Professional Brands (72-79 OVR / First Team Players) - €4.5K - €8K/week
-            Sponsors.Add(new Sponsor("Metro Motors", 8000, 3, 75, 79));
-            Sponsors.Add(new Sponsor("Peak Nutrition", 6500, 3, 74, 79));
-            Sponsors.Add(new Sponsor("Breeze Beverages", 5500, 2, 73, 79));
-            Sponsors.Add(new Sponsor("Urban Kicks", 5000, 2, 72, 79));
-            Sponsors.Add(new Sponsor("ProFit Athletics", 4500, 2, 72, 79));
+            Sponsors.Add(new Sponsor("Metro Motorlar", 8000, 3, 75, 79));
+            Sponsors.Add(new Sponsor("Peak Beslenme", 6500, 3, 74, 79));
+            Sponsors.Add(new Sponsor("Meltem İçecek", 5500, 2, 73, 79));
+            Sponsors.Add(new Sponsor("Kent Ayakkabı", 5000, 2, 72, 79));
+            Sponsors.Add(new Sponsor("ProFit Atletizm", 4500, 2, 72, 79));
 
             // Tier 2: Mid-Tier Local Brands (62-71 OVR / Rotation Players) - €900 - €2K/week
-            Sponsors.Add(new Sponsor("Green Turf Gear", 2000, 2, 65, 71));
-            Sponsors.Add(new Sponsor("Pulse Fitness", 1800, 2, 64, 71));
-            Sponsors.Add(new Sponsor("Town Auto", 1500, 2, 62, 71));
-            Sponsors.Add(new Sponsor("Express Pizza", 1200, 2, 62, 71));
-            Sponsors.Add(new Sponsor("Neighborhood Market", 900, 1, 60, 71));
+            Sponsors.Add(new Sponsor("Yeşil Saha Ekipman", 2000, 2, 65, 71));
+            Sponsors.Add(new Sponsor("Nabız Fitness", 1800, 2, 64, 71));
+            Sponsors.Add(new Sponsor("Şehir Oto", 1500, 2, 62, 71));
+            Sponsors.Add(new Sponsor("Ekspres Pizza", 1200, 2, 62, 71));
+            Sponsors.Add(new Sponsor("Mahalle Marketi", 900, 1, 60, 71));
 
             // Tier 1: Grassroots / Local Brands (<62 OVR / Young Players) - €180 - €350/week
-            Sponsors.Add(new Sponsor("Village Diner", 350, 1, 40, 61));
-            Sponsors.Add(new Sponsor("Local Kebab", 300, 1, 40, 61));
-            Sponsors.Add(new Sponsor("City Bakery", 250, 1, 40, 61));
-            Sponsors.Add(new Sponsor("Parkside Supply", 200, 1, 40, 61));
-            Sponsors.Add(new Sponsor("Corner Cafe", 180, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Köy Lokantası", 350, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Yerel Kebapçı", 300, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Şehir Fırını", 250, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Parkyanı Malzeme", 200, 1, 40, 61));
+            Sponsors.Add(new Sponsor("Köşe Kafe", 180, 1, 40, 61));
         }
 
         private void GenerateSimulationLeagues()

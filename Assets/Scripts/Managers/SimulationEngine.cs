@@ -904,15 +904,15 @@ namespace BehindTheScenesFootball.Managers
                             SimulationMail mail = new SimulationMail
                             {
                                 Id = System.Guid.NewGuid().ToString(),
-                                Sender = $"{targetSponsor.BrandName} Sponsorluk Departmanı",
+                                Sender = $"{targetSponsor.LocalizedBrandName} Sponsorluk Departmanı",
                                 Subject = $"💼 SPONSORLUK TEKLİFİ: {client.Name}",
-                                Content = $"Sayın Menajer,\n\nOyuncunuz {client.Name} kulübündeki başarılı performansıyla markamızın dikkatini çekmiştir. Kendisine haftalık taban €{baseWage:N0} bütçeli bir sponsorluk anlaşması sunmak istiyoruz. Detaylı görüşme ve imza işlemleri için lütfen oyuncunun profil sayfasındaki 'Sponsorluk Teklifleri' menüsünü ziyaret edin.\n\nSaygılarımızla,\n{targetSponsor.BrandName}",
+                                Content = $"Sayın Menajer,\n\nOyuncunuz {client.Name} kulübündeki başarılı performansıyla markamızın dikkatini çekmiştir. Kendisine haftalık taban €{baseWage:N0} bütçeli bir sponsorluk anlaşması sunmak istiyoruz. Detaylı görüşme ve imza işlemleri için lütfen oyuncunun profil sayfasındaki 'Sponsorluk Teklifleri' menüsünü ziyaret edin.\n\nSaygılarımızla,\n{targetSponsor.LocalizedBrandName}",
                                 PlayerId = client.Id,
                                 IsRenewalMail = false,
                                 WeeksLeft = 0
                             };
                             ActiveMails.Add(mail);
-                            AgencyManager.Instance.LogActivity($"TEKLİF: Müşteriniz {client.Name} için {targetSponsor.BrandName} markasından sponsorluk teklifi geldi!");
+                            AgencyManager.Instance.LogActivity($"TEKLİF: Müşteriniz {client.Name} için {targetSponsor.LocalizedBrandName} markasından sponsorluk teklifi geldi!");
                         }
                     }
                 }

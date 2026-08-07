@@ -24,7 +24,15 @@ namespace BehindTheScenesFootball.Managers
         public static string Translate(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
-            if (CurrentLanguage == "TR") return text;
+
+            if (CurrentLanguage == "TR")
+            {
+                if (trTranslations.TryGetValue(text, out string trVal))
+                {
+                    return trVal;
+                }
+                return text;
+            }
 
             // Direct Translation Lookup
             if (uiTranslations.TryGetValue(text, out string val))
@@ -46,12 +54,23 @@ namespace BehindTheScenesFootball.Managers
             // 0. Primary High-Priority Long Translations (to prevent substring theft / corruptions)
             result = result.Replace("OYUNA DEVAM ET", "RESUME GAME");
             result = result.Replace("KAYITLI OYUN AÇ", "LOAD SAVED GAME");
+            result = result.Replace("Tüm liglerin 34 weekly fikstürü oluşturuldu.", "34-week fixture has been generated for all leagues.");
+            result = result.Replace("Tüm liglerin 34 haftalık fikstürü oluşturuldu.", "34-week fixture has been generated for all leagues.");
+            result = result.Replace("Discovered Free Agent Oyuncu", "Discovered Free Agent Player");
+            result = result.Replace("Ajans Başlangıcı: Keşfedilen Serbest Oyuncu", "Agency Start: Discovered Free Agent Player");
+            result = result.Replace("Keşfedilen Serbest Oyuncu", "Discovered Free Agent Player");
+
             result = result.Replace("Haftalık Salary:", "Weekly Salary:");
             result = result.Replace("Haftalık Salary", "Weekly Salary");
             result = result.Replace("Haftalık Maaş:", "Weekly Wage:");
             result = result.Replace("Haftalık Maaş", "Weekly Wage");
             result = result.Replace("Haftalık", "Weekly");
             result = result.Replace("haftalık", "weekly");
+
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"SPONSOR TEKLİFLERİ\s*\((\d+)\)", "SPONSORSHIP OFFERS ($1)");
+            result = result.Replace("SPONSOR TEKLİFİ YOK", "NO SPONSOR OFFERS");
+            result = result.Replace("SPONSOR SÖZLEŞMESİ AKTİF", "SPONSORSHIP DEAL ACTIVE");
+            result = result.Replace("SPONSOR TEKLİFLERİ", "SPONSORSHIP OFFERS");
 
             // Dialogue Request Mails & Subjects
             result = result.Replace("📩 MÜŞTERİ TALEBİ: Özel Antrenör İsteyi", "📩 CLIENT REQUEST: Special Coach Request");
@@ -385,7 +404,7 @@ namespace BehindTheScenesFootball.Managers
             result = result.Replace("Ajans Başlangıcı: Keşfedilen Serbest Oyuncu", "Agency Start: Discovered Free Agent");
             result = result.Replace("Ajans Başlangıcı: Keşfedilen", "Agency Start: Discovered");
             result = result.Replace("Serbest Oyuncu", "Free Agent");
-            result = result.Replace("Şirketi kuruldu. Başlangıç bütçesi:", "Company founded. Starting budget:");
+            result = result.Replace("Şirketi kuruldu. Başlangıç bütçesi:", "agency officially founded! Starting budget:");
             result = result.Replace("gözlemci raporuna eklendi.", "added to scout report.");
             result = result.Replace("ÖVGÜ: Müşteriniz", "PRAISE: Your client");
             result = result.Replace("övgü dolu sözleriniz üzerine motive oldu (Yeni Mutluluk:", "was motivated by your praise (New Morale:");
@@ -606,9 +625,26 @@ namespace BehindTheScenesFootball.Managers
             result = result.Replace("GÖZLEMCİ İŞTEN ÇIKARILDI:", "SCOUT DISMISSED:");
             result = result.Replace("ile yollar ayrıldı.", "was dismissed.");
             result = result.Replace("işten çıkarıldı.", "was dismissed.");
-            result = result.Replace("Merkez Seviyesi: Sev", "Center Level: Lvl");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"GELİŞTİR\s*\((?:Sev|Lvl)\s*(\d+)\)", "UPGRADE (Lvl $1)");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"GÖZLEMCİ AL\s*\((?:Sev|Lvl)\s*(\d+)\)", "HIRE SCOUT (Lvl $1)");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"Merkez\s*Seviyesi:\s*(?:Sev|Lvl)\s*(\d+)", "Center Level: Lvl $1");
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(Sev:\s*(\d+)\)", "(Lvl: $1)");
+
+            result = result.Replace("GÖZLEMCİ MERKEZİ", "SCOUTING CENTER");
             result = result.Replace("MERKEZİ GELİŞTİR", "UPGRADE CENTER");
             result = result.Replace("GELİŞTİR (Sev", "UPGRADE (Lvl");
+            result = result.Replace("GELİŞTİR (Lvl", "UPGRADE (Lvl");
+            result = result.Replace("GELİŞTİR", "UPGRADE");
+
+            result = result.Replace("Merkez Seviyesi: Sev", "Center Level: Lvl");
+            result = result.Replace("Merkez Seviyesi: Lvl", "Center Level: Lvl");
+            result = result.Replace("Merkez Seviyesi:", "Center Level:");
+            result = result.Replace("Merkez Seviyesi", "Center Level");
+
+            result = result.Replace("PERSONEL AL (GÖZLEMCİ)", "HIRE SCOUT");
+            result = result.Replace("GÖZLEMCİ AL", "HIRE SCOUT");
+            result = result.Replace("Bedel:", "Cost:");
+
             result = result.Replace("MAKSİMUM SEVİYE", "MAX LEVEL");
             result = result.Replace("GÖZLEMCİ MERKEZİ GELİŞTİRİLDİ: Seviye", "SCOUTING CENTER UPGRADED: Level");
             result = result.Replace("yapıldı!", "achieved!");
@@ -655,12 +691,50 @@ namespace BehindTheScenesFootball.Managers
             result = result.Replace("takım içi lider olarak desteklendi.", "was supported as team leader.");
             result = result.Replace("size bir talep mesajı gönderdi. Gelen Kutunuzu kontrol edin.", "sent you a request message. Check your Inbox.");
             result = result.Replace("HARİKA PERFORMANS: Müşterimiz", "GREAT PERFORMANCE: Our client");
+            result = result.Replace("HARİKA PERFORMANS:", "GREAT PERFORMANCE:");
             result = result.Replace("harika bir performans gösterdi (Puan:", "had a great performance (Rating:");
             result = result.Replace("İYİ PERFORMANS: Müşterimiz", "GOOD PERFORMANCE: Our client");
+            result = result.Replace("İYİ PERFORMANS:", "GOOD PERFORMANCE:");
             result = result.Replace("iyi bir maç çıkardı (Puan:", "had a good match (Rating:");
             result = result.Replace("ZAYIF PERFORMANS: Müşterimiz", "POOR PERFORMANCE: Our client");
+            result = result.Replace("ZAYIF PERFORMANS:", "POOR PERFORMANCE:");
             result = result.Replace("KÖTÜ PERFORMANS: Müşterimiz", "POOR PERFORMANCE: Our client");
+            result = result.Replace("KÖTÜ PERFORMANS:", "POOR PERFORMANCE:");
             result = result.Replace("kötü bir performans sergiledi (Puan:", "had a poor performance (Rating:");
+            result = result.Replace("etkisiz bir performans gösterdi (Puan:", "had a poor performance (Rating:");
+
+            result = result.Replace("Ajans itibarı arttı (+1).", "Agency reputation increased (+1).");
+            result = result.Replace("Ajans itibarı arttı (+2).", "Agency reputation increased (+2).");
+            result = result.Replace("Ajans itibarı arttı (+3).", "Agency reputation increased (+3).");
+            result = result.Replace("Ajans itibarı arttı (+8).", "Agency reputation increased (+8).");
+            result = result.Replace("Ajans itibarı arttı (+10).", "Agency reputation increased (+10).");
+            result = result.Replace("Ajans itibarı arttı (+20).", "Agency reputation increased (+20).");
+            result = result.Replace("Ajans itibarı arttı (+", "Agency reputation increased (+");
+            result = result.Replace("Ajans itibarı arttı", "Agency reputation increased");
+            result = result.Replace("Ajans itibarı düştü (-1).", "Agency reputation decreased (-1).");
+            result = result.Replace("Ajans itibarı düştü (-5).", "Agency reputation decreased (-5).");
+            result = result.Replace("Ajans itibarı düştü (-", "Agency reputation decreased (-");
+            result = result.Replace("Ajans itibarı düştü", "Agency reputation decreased");
+
+            result = result.Replace("TALEPLER: Müşteriniz", "CLIENT REQUEST: Your client");
+            result = result.Replace("TALEPLER:", "CLIENT REQUEST:");
+            result = result.Replace("bir talepte bulundu! Lütfen gelen kutusunu kontrol edin.", "made a request! Please check your inbox.");
+            result = result.Replace("TALEBİ KARŞILADINIZ:", "REQUEST GRANTED:");
+            result = result.Replace("TALEBİ REDDETTİNİZ:", "REQUEST REJECTED:");
+            result = result.Replace("adlı oyuncunun talebi yerine getirildi.", "'s request has been granted.");
+            result = result.Replace("adlı oyuncunun isteğini reddettiniz.", "'s request was rejected.");
+
+            result = result.Replace("ÖVGÜ: Müşteriniz", "PRAISE: Your client");
+            result = result.Replace("ÖVGÜ:", "PRAISE:");
+            result = result.Replace("övgü dolu sözleriniz üzerine motive oldu (Yeni Mutluluk: %", "was motivated by your praise (New Morale: ");
+            result = result.Replace("PRİM: Müşteriniz", "BONUS: Your client");
+            result = result.Replace("PRİM:", "BONUS:");
+            result = result.Replace("ajansınızdan aldığı €", "was very happy with the €");
+            result = result.Replace("prim ile çok mutlu oldu (Yeni Mutluluk: %", "bonus from your agency (New Morale: ");
+            result = result.Replace("ELEŞTİRİ: Müşteriniz", "CRITICISM: Your client");
+            result = result.Replace("ELEŞTİRİ:", "CRITICISM:");
+            result = result.Replace("disiplinsiz davranışları nedeniyle uyarıldı, morali bozuldu (Yeni Mutluluk: %", "was warned for indiscipline, morale dropped (New Morale: ");
+
             result = result.Replace("GOL! Müşteriniz", "GOAL! Your client");
             result = result.Replace("takımı adına gol attı! Ajans itibarı arttı (+3).", "scored a goal for his team! Agency reputation increased (+3).");
             result = result.Replace("HAT-TRICK! Müşteriniz", "HAT-TRICK! Your client");
@@ -956,6 +1030,59 @@ namespace BehindTheScenesFootball.Managers
             { "<b>✉ SOSYAL MEDYA</b>", "<b>✉ SOCIAL MEDIA</b>" },
             { "Detaylar için dokun...", "Tap for details..." },
             { "SPONSORLUK TEKLİFLERİ", "SPONSORSHIP OFFERS" },
+            { "SPONSOR TEKLİFİ YOK", "NO SPONSOR OFFERS" },
+            { "SPONSOR SÖZLEŞMESİ AKTİF", "SPONSORSHIP DEAL ACTIVE" },
+            { "SPONSOR TEKLİFLERİ", "SPONSORSHIP OFFERS" },
+            // Sponsor Brand Names
+            { "Taç Saat", "Crown Chrono" },
+            { "Crown Chrono", "Crown Chrono" },
+            { "Vanguard Hava Yolları", "Vanguard Airways" },
+            { "Vanguard Airways", "Vanguard Airways" },
+            { "AeroTek Global", "AeroTech Global" },
+            { "AeroTech Global", "AeroTech Global" },
+            { "Titan Spor", "Titan Sportswear" },
+            { "Titan Sportswear", "Titan Sportswear" },
+            { "Apex Enerji", "Apex Energy" },
+            { "Apex Energy", "Apex Energy" },
+            { "Skyline Havacılık", "Skyline Aviation" },
+            { "Skyline Aviation", "Skyline Aviation" },
+            { "Volt İçecek", "Volt Hydration" },
+            { "Volt Hydration", "Volt Hydration" },
+            { "Strikeforce Pro", "Strikeforce Pro" },
+            { "Velocity Ekipman", "Velocity Gear" },
+            { "Velocity Gear", "Velocity Gear" },
+            { "Prime Ses Sistemleri", "Prime Audio" },
+            { "Prime Audio", "Prime Audio" },
+            { "Metro Motorlar", "Metro Motors" },
+            { "Metro Motors", "Metro Motors" },
+            { "Peak Beslenme", "Peak Nutrition" },
+            { "Peak Nutrition", "Peak Nutrition" },
+            { "Meltem İçecek", "Breeze Beverages" },
+            { "Breeze Beverages", "Breeze Beverages" },
+            { "Kent Ayakkabı", "Urban Kicks" },
+            { "Urban Kicks", "Urban Kicks" },
+            { "ProFit Atletizm", "ProFit Athletics" },
+            { "ProFit Athletics", "ProFit Athletics" },
+            { "Yeşil Saha Ekipman", "Green Turf Gear" },
+            { "Green Turf Gear", "Green Turf Gear" },
+            { "Nabız Fitness", "Pulse Fitness" },
+            { "Pulse Fitness", "Pulse Fitness" },
+            { "Şehir Oto", "Town Auto" },
+            { "Town Auto", "Town Auto" },
+            { "Ekspres Pizza", "Express Pizza" },
+            { "Express Pizza", "Express Pizza" },
+            { "Mahalle Marketi", "Neighborhood Market" },
+            { "Neighborhood Market", "Neighborhood Market" },
+            { "Köy Lokantası", "Village Diner" },
+            { "Village Diner", "Village Diner" },
+            { "Yerel Kebapçı", "Local Kebab" },
+            { "Local Kebab", "Local Kebab" },
+            { "Şehir Fırını", "City Bakery" },
+            { "City Bakery", "City Bakery" },
+            { "Parkyanı Malzeme", "Parkside Supply" },
+            { "Parkside Supply", "Parkside Supply" },
+            { "Köşe Kafe", "Corner Cafe" },
+            { "Corner Cafe", "Corner Cafe" },
             { "TEKLİFİ İMZALA", "SIGN OFFER" },
             { "ANLAŞMAYI İMZALA", "SIGN AGREEMENT" },
             { "📩 GELEN KUTUSU BOŞ", "📩 INBOX IS EMPTY" },
@@ -1746,6 +1873,35 @@ namespace BehindTheScenesFootball.Managers
             { "Sao Jose Mavi", "Sao Jose Blues" },
             { "Ypiranga Kaplanları", "Ypiranga Tigers" },
             { "Remo Gücü", "Remo Power" }
+        };
+
+        private static readonly Dictionary<string, string> trTranslations = new Dictionary<string, string>
+        {
+            { "Crown Chrono", "Taç Saat" },
+            { "Vanguard Airways", "Vanguard Hava Yolları" },
+            { "AeroTech Global", "AeroTek Global" },
+            { "Titan Sportswear", "Titan Spor" },
+            { "Apex Energy", "Apex Enerji" },
+            { "Skyline Aviation", "Skyline Havacılık" },
+            { "Volt Hydration", "Volt İçecek" },
+            { "Strikeforce Pro", "Strikeforce Pro" },
+            { "Velocity Gear", "Velocity Ekipman" },
+            { "Prime Audio", "Prime Ses Sistemleri" },
+            { "Metro Motors", "Metro Motorlar" },
+            { "Peak Nutrition", "Peak Beslenme" },
+            { "Breeze Beverages", "Meltem İçecek" },
+            { "Urban Kicks", "Kent Ayakkabı" },
+            { "ProFit Athletics", "ProFit Atletizm" },
+            { "Green Turf Gear", "Yeşil Saha Ekipman" },
+            { "Pulse Fitness", "Nabız Fitness" },
+            { "Town Auto", "Şehir Oto" },
+            { "Express Pizza", "Ekspres Pizza" },
+            { "Neighborhood Market", "Mahalle Marketi" },
+            { "Village Diner", "Köy Lokantası" },
+            { "Local Kebab", "Yerel Kebapçı" },
+            { "City Bakery", "Şehir Fırını" },
+            { "Parkside Supply", "Parkyanı Malzeme" },
+            { "Corner Cafe", "Köşe Kafe" }
         };
     }
 

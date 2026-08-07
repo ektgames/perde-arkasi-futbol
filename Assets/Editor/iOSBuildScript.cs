@@ -29,7 +29,7 @@ public static class iOSBuildScript
         Debug.Log("[iOSBuildScript] Set Bundle Identifier to: com.ektgames.perdearkasifutbol");
 
         // Set and verify iOS Build Number
-        PlayerSettings.iOS.buildNumber = "4";
+        PlayerSettings.iOS.buildNumber = "5";
         Debug.Log($"[iOSBuildScript] PlayerSettings.iOS.buildNumber: {PlayerSettings.iOS.buildNumber}");
 
         // Set AppIcon texture

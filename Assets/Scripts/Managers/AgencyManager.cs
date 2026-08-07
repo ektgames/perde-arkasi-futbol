@@ -12,7 +12,7 @@ namespace BehindTheScenesFootball.Managers
         public List<string> RecentActivityLog = new List<string>();
         
         [Header("Starting Settings")]
-        public string DefaultAgencyName = "Arka Bahçe Menajerlik";
+        public string DefaultAgencyName = "EKT Ajans";
         public long StartingBalance = 10000; // Starting with €10k
 
         private void Awake()

@@ -120,7 +120,9 @@ namespace BehindTheScenesFootball.UI
             bool isEnglish = BehindTheScenesFootball.Managers.LocalizationManager.CurrentLanguage == "EN";
 
             // Update Center Level Header & Upgrade Button
-            centerLevelTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"Merkez Seviyesi: Sev {agency.ScoutingCenterLevel}");
+            string lvlPrefix = isEnglish ? "Center Level: Lvl" : "Merkez Seviyesi: Sev";
+            centerLevelTxt.text = $"{lvlPrefix} {agency.ScoutingCenterLevel}";
+
             Text upgradeLabel = btnUpgradeObj.GetComponentInChildren<Text>();
             if (agency.ScoutingCenterLevel >= 5)
             {
@@ -133,7 +135,9 @@ namespace BehindTheScenesFootball.UI
                 long upCost = GetScoutingCenterUpgradeCost(agency.ScoutingCenterLevel);
                 if (upgradeLabel != null)
                 {
-                    upgradeLabel.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"GELİŞTİR (Sev {agency.ScoutingCenterLevel + 1})\n€{upCost:N0}");
+                    string upTitle = isEnglish ? "UPGRADE" : "GELİŞTİR";
+                    string upLvl = isEnglish ? "Lvl" : "Sev";
+                    upgradeLabel.text = $"{upTitle} ({upLvl} {agency.ScoutingCenterLevel + 1})\n€{upCost:N0}";
                 }
                 Image upImg = btnUpgradeObj.GetComponent<Image>();
                 if (upImg != null) upImg.color = uiManager.ColorGreen;
@@ -163,13 +167,18 @@ namespace BehindTheScenesFootball.UI
                     }
                 }
 
-                slotTxt.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"Gözlemciler: {scoutCount}/3\nAday: {candidateScout.Name} (Sev: {candidateScout.Level})");
+                string scoutsLbl = isEnglish ? "Scouts:" : "Gözlemciler:";
+                string candidateLbl = isEnglish ? "Candidate:" : "Aday:";
+                string lvlStr = isEnglish ? "Lvl" : "Sev";
+                slotTxt.text = $"{scoutsLbl} {scoutCount}/3\n{candidateLbl} {candidateScout.Name} ({lvlStr}: {candidateScout.Level})";
                 long cost = GetRecruitmentCost(candidateScout.Level);
 
                 Text hireLabel = btnHireObj.GetComponentInChildren<Text>();
                 if (hireLabel != null)
                 {
-                    hireLabel.text = BehindTheScenesFootball.Managers.LocalizationManager.Translate($"GÖZLEMCİ AL (Sev {candidateScout.Level})\nBedel: €{cost:N0}");
+                    string hireTitle = isEnglish ? "HIRE SCOUT" : "GÖZLEMCİ AL";
+                    string costTitle = isEnglish ? "Cost" : "Bedel";
+                    hireLabel.text = $"{hireTitle} ({lvlStr} {candidateScout.Level})\n{costTitle}: €{cost:N0}";
                 }
                 btnHireObj.SetActive(true);
             }
@@ -215,7 +224,7 @@ namespace BehindTheScenesFootball.UI
                 backLe.minHeight = 150f;
                 backLe.preferredHeight = 150f;
 
-                Text btnBack = uiManager.CreateButtonHelper(backRow.transform, "BtnBack", "GERİ DÖN (İPTAL)", uiManager.ColorRed, Color.white, () => {
+                Text btnBack = uiManager.CreateButtonHelper(backRow.transform, "BtnBack", BehindTheScenesFootball.Managers.LocalizationManager.Translate("GERİ DÖN (İPTAL)"), uiManager.ColorRed, Color.white, () => {
                     currentViewMode = 0;
                     Refresh();
                 });
@@ -236,7 +245,7 @@ namespace BehindTheScenesFootball.UI
                 backLe.minHeight = 150f;
                 backLe.preferredHeight = 150f;
 
-                Text btnBack = uiManager.CreateButtonHelper(backRow.transform, "BtnBack", "GÖZLEMCİLERE GERİ DÖN", uiManager.ColorGreen, Color.white, () => {
+                Text btnBack = uiManager.CreateButtonHelper(backRow.transform, "BtnBack", BehindTheScenesFootball.Managers.LocalizationManager.Translate("GÖZLEMCİLERE GERİ DÖN"), uiManager.ColorGreen, Color.white, () => {
                     currentViewMode = 0;
                     Refresh();
                 });
@@ -251,7 +260,7 @@ namespace BehindTheScenesFootball.UI
                     le.minHeight = 300f;
                     le.preferredHeight = 300f;
 
-                    Text msg = CreateText(row.transform, "MsgText", "Bu raporda henüz aday oyuncu bulunmamaktadır veya tamamı sözleşme imzalanmıştır.", 48, Color.white, TextAnchor.MiddleCenter);
+                    Text msg = CreateText(row.transform, "MsgText", BehindTheScenesFootball.Managers.LocalizationManager.Translate("Bu raporda henüz aday oyuncu bulunmamaktadır veya tamamı sözleşme imzalanmıştır."), 48, Color.white, TextAnchor.MiddleCenter);
                     SetRectTransform(msg, Vector2.zero, Vector2.one, new Vector2(20f, 10f), new Vector2(-20f, -10f));
                 }
                 else

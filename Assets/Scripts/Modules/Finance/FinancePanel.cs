@@ -200,7 +200,7 @@ namespace BehindTheScenesFootball.UI
             Text sponsorTitle = CreateText(row.transform, "SponsorTitle", "AKTİF SPONSORLUK", 48, uiManager.ColorAccent, TextAnchor.MiddleLeft); // Orijinal boyutuna geri alındı: 48
             sponsorTitle.fontStyle = FontStyle.Bold;
  
-            string sponsorBrand = p.ActiveSponsor != null ? p.ActiveSponsor.BrandName : "Sponsor Sözleşmesi Yok";
+            string sponsorBrand = p.ActiveSponsor != null ? p.ActiveSponsor.LocalizedBrandName : "Sponsor Sözleşmesi Yok";
             long sponsorIncome = p.ActiveSponsor != null ? p.ActiveSponsor.WeeklyIncome : 0;
             long sponsorCommission = (long)(sponsorIncome * p.CustomSponsorCommissionPercent);
  
